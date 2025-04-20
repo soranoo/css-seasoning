@@ -76,7 +76,7 @@ const parseArgsa = () => {
     debugSymbol: args["debug-symbol"],
     prefix: args.prefix,
     suffix: args.suffix,
-    seed: args.seed ? parseInt(args.seed) : undefined,
+    seed: args.seed ? Number.parseInt(args.seed) : undefined,
     minify: args.minify,
     sourceMap: args["source-map"],
     conversionTablesFile: args["conversion-tables"],
@@ -146,7 +146,7 @@ const main = async () => {
       console.log(`Conversion tables saved to ${options.saveTablesFile}`);
     } else {
       // Print conversion tables to stderr
-      console.log(`\nConversion Tables:`);
+      console.log("\nConversion Tables:");
       console.log(JSON.stringify(result.conversionTables, null, 2));
     }
 

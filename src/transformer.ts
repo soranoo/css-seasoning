@@ -73,8 +73,7 @@ const INTERNAL_handleSelector = (
             }
           } else {
             throw new Error(
-              `Unhandled component stringify: ${
-                JSON.stringify(component)
+              `Unhandled component stringify: ${JSON.stringify(component)
               }, the "${component.type}" type should be handled.`,
             );
           }
@@ -180,103 +179,108 @@ const createConversionFunction = (
     ) => string;
   },
 ) => string => {
-  if (mode === "minimal") {
-    let minimalCounter = 0;
-    return (
-      value: string,
-      conversionTable: Record<string, string>,
-      options?: {
-        onExistenceFound?: (
-          originalValue: string,
-          convertToValue: string,
-        ) => string;
-        onNewValueBeforeAdd?: (
-          originalValue: string,
-          valueToSave: string,
-        ) => string;
-      },
-    ) => {
-      const escaped = cssEscape(value);
-      if (conversionTable[escaped]) {
-        const convertToValue = conversionTable[escaped];
-        if (options?.onExistenceFound) {
-          return options.onExistenceFound(value, convertToValue);
+  switch (mode) {
+    case "minimal": {
+      let minimalCounter = 0;
+      return (
+        value: string,
+        conversionTable: Record<string, string>,
+        options?: {
+          onExistenceFound?: (
+            originalValue: string,
+            convertToValue: string,
+          ) => string;
+          onNewValueBeforeAdd?: (
+            originalValue: string,
+            valueToSave: string,
+          ) => string;
+        },
+      ) => {
+        const escaped = cssEscape(value);
+        if (conversionTable[escaped]) {
+          const convertToValue = conversionTable[escaped];
+          if (options?.onExistenceFound) {
+            return options.onExistenceFound(value, convertToValue);
+          }
+          return convertToValue;
         }
-        return convertToValue;
-      }
-      const newVal = prefix + numberToLetters(minimalCounter) + suffix;
-      minimalCounter++;
-      conversionTable[escaped] = cssEscape(
-        options?.onNewValueBeforeAdd
-          ? options.onNewValueBeforeAdd(value, newVal)
-          : newVal,
-      );
-      return newVal;
-    };
-  } else if (mode === "debug") {
-    return (
-      value: string,
-      conversionTable: Record<string, string>,
-      options?: {
-        onExistenceFound?: (
-          originalValue: string,
-          convertToValue: string,
-        ) => string;
-        onNewValueBeforeAdd?: (
-          originalValue: string,
-          valueToSave: string,
-        ) => string;
-      },
-    ) => {
-      const escaped = cssEscape(value);
-      if (conversionTable[escaped]) {
-        const convertToValue = conversionTable[escaped];
-        if (options?.onExistenceFound) {
-          return options.onExistenceFound(value, convertToValue);
+        const newVal = prefix + numberToLetters(minimalCounter) + suffix;
+        minimalCounter++;
+        conversionTable[escaped] = cssEscape(
+          options?.onNewValueBeforeAdd
+            ? options.onNewValueBeforeAdd(value, newVal)
+            : newVal,
+        );
+        return newVal;
+      };
+    }
+    case "debug": {
+      return (
+        value: string,
+        conversionTable: Record<string, string>,
+        options?: {
+          onExistenceFound?: (
+            originalValue: string,
+            convertToValue: string,
+          ) => string;
+          onNewValueBeforeAdd?: (
+            originalValue: string,
+            valueToSave: string,
+          ) => string;
+        },
+      ) => {
+        const escaped = cssEscape(value);
+        if (conversionTable[escaped]) {
+          const convertToValue = conversionTable[escaped];
+          if (options?.onExistenceFound) {
+            return options.onExistenceFound(value, convertToValue);
+          }
+          return convertToValue;
         }
-        return convertToValue;
-      }
-      const newVal = debugSymbol + prefix + value + suffix;
-      conversionTable[escaped] = cssEscape(
-        options?.onNewValueBeforeAdd
-          ? options.onNewValueBeforeAdd(value, newVal)
-          : newVal,
-      );
-      return newVal;
-    };
-  } else {
-    // hash mode
-    const localSeed = seed;
-    return (
-      value: string,
-      conversionTable: Record<string, string>,
-      options?: {
-        onExistenceFound?: (
-          originalValue: string,
-          convertToValue: string,
-        ) => string;
-        onNewValueBeforeAdd?: (
-          originalValue: string,
-          valueToSave: string,
-        ) => string;
-      },
-    ) => {
-      const escaped = cssEscape(value);
-      if (conversionTable[escaped]) {
-        const convertToValue = conversionTable[escaped];
-        if (options?.onExistenceFound) {
-          return options.onExistenceFound(value, convertToValue);
+        const newVal = debugSymbol + prefix + value + suffix;
+        conversionTable[escaped] = cssEscape(
+          options?.onNewValueBeforeAdd
+            ? options.onNewValueBeforeAdd(value, newVal)
+            : newVal,
+        );
+        return newVal;
+      };
+    }
+    case "hash": {
+      const localSeed = seed;
+      return (
+        value: string,
+        conversionTable: Record<string, string>,
+        options?: {
+          onExistenceFound?: (
+            originalValue: string,
+            convertToValue: string,
+          ) => string;
+          onNewValueBeforeAdd?: (
+            originalValue: string,
+            valueToSave: string,
+          ) => string;
+        },
+      ) => {
+        const escaped = cssEscape(value);
+        if (conversionTable[escaped]) {
+          const convertToValue = conversionTable[escaped];
+          if (options?.onExistenceFound) {
+            return options.onExistenceFound(value, convertToValue);
+          }
+          return convertToValue;
         }
-        return convertToValue;
-      }
-      const hashValue = prefix + generateHash(value, localSeed) + suffix;
-      conversionTable[escaped] = cssEscape(
-        options?.onNewValueBeforeAdd
-          ? options.onNewValueBeforeAdd(value, hashValue)
-          : hashValue,
-      );
-      return hashValue;
-    };
+        const hashValue = prefix + generateHash(value, localSeed) + suffix;
+        conversionTable[escaped] = cssEscape(
+          options?.onNewValueBeforeAdd
+            ? options.onNewValueBeforeAdd(value, hashValue)
+            : hashValue,
+        );
+        return hashValue;
+      };
+    }
+    default:
+      throw new Error(`Unknown mode: ${mode}`);
   }
 };
 
