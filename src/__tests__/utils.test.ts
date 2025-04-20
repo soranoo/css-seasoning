@@ -5,6 +5,7 @@ import {
   generateHash,
   initializeHash,
   isNArray,
+  matchesAnyPattern,
   numberToLetters,
   parseSelectorComponent,
   stringifySelectorComponent,
@@ -158,4 +159,32 @@ Deno.test("Array level detection works correctly", () => {
   assertEquals(isNArray([[[1]]], 3), true);
   assertEquals(isNArray([], 1), true);
   assertEquals(isNArray("not an array", 1), false);
+});
+
+// Tests for matchesAnyPattern function
+Deno.test("matchesAnyPattern identifies matching patterns correctly", () => {
+  // Test with string patterns
+  assertEquals(matchesAnyPattern("test", ["test"]), true);
+  assertEquals(matchesAnyPattern("test", ["other"]), false);
+  assertEquals(matchesAnyPattern("test123", ["test\\d+"]), true);
+
+  // Test with RegExp patterns
+  assertEquals(matchesAnyPattern("test", [/^test$/]), true);
+  assertEquals(matchesAnyPattern("test", [/^t.st$/]), true);
+  assertEquals(matchesAnyPattern("test", [/^other$/]), false);
+
+  // Test with mixed patterns
+  assertEquals(matchesAnyPattern("test", ["other", /^test$/]), true);
+  assertEquals(matchesAnyPattern("test", [/^other$/, "test"]), true);
+
+  // Test with multiple matches
+  assertEquals(matchesAnyPattern("test", ["test", /^test$/]), true);
+
+  // Test with empty or undefined patterns
+  assertEquals(matchesAnyPattern("test", []), false);
+  assertEquals(matchesAnyPattern("test", undefined), false);
+
+  // Test case sensitivity
+  assertEquals(matchesAnyPattern("Test", ["test"]), false);
+  assertEquals(matchesAnyPattern("Test", [/test/i]), true);
 });
