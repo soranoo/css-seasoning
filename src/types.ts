@@ -32,6 +32,24 @@ export interface TransformProps {
    * Use if you want to preserve previous mappings.
    */
   conversionTables?: Partial<ConversionTables>;
+  /**
+   * Patterns to ignore when transforming CSS.
+   * Any selector or custom property that matches one of the patterns will be left unchanged.
+   */
+  ignorePatterns?: {
+    /**
+     * Patterns for selectors to ignore during transformation.
+     * Any selector that matches one of these regular expressions will be left unchanged.
+     * Patterns should match the selector name without the prefix (e.g., "button" for ".button").
+     */
+    selector?: (string | RegExp)[];
+    /**
+     * Patterns for custom properties (identifiers) to ignore during transformation.
+     * Any custom property that matches one of these regular expressions will be left unchanged.
+     * Patterns should match the property name without the '--' prefix (e.g., "color" for "--color").
+     */
+    ident?: (string | RegExp)[];
+  };
   lightningcssOptions?: Omit<
     TransformOptions<CustomAtRules>,
     | "filename"

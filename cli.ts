@@ -27,11 +27,14 @@ OPTIONS:
   --source-map                 Generate source map
   --conversion-tables <file>   JSON file with existing conversion tables to preserve mappings
   --save-tables <file>         Save the conversion tables to a JSON file (prints to stderr if not specified)
+  --ignore-selector <pattern>  Regex pattern for selectors to ignore (can be used multiple times)
+  --ignore-ident <pattern>     Regex pattern for custom properties to ignore (can be used multiple times)
 
 EXAMPLES:
   css-seasoning styles.css
   css-seasoning -o output.css -m minimal styles.css
   css-seasoning --mode debug --debug-symbol "_d_" styles.css
+  css-seasoning --ignore-selector "^btn-" --ignore-ident "^theme-" styles.css
   `);
 };
 
@@ -40,8 +43,12 @@ EXAMPLES:
  */
 const parseArgsa = () => {
   const args = jsrParseArgs(Deno.args, {
-    string: ["output", "mode", "debug-symbol", "prefix", "suffix", "seed", "conversion-tables", "save-tables"],
-    boolean: ["help", "minify", "source-map"],
+    string: ["output", "mode", "debug-symbol", "prefix", "suffix", "seed", "conversion-tables", "save-tables", "ignore-selector", "ignore-ident"],
+    boolean: [
+      "help", 
+      "minify", 
+      "source-map"
+    ],
     alias: {
       h: "help",
       o: "output",
@@ -57,6 +64,7 @@ const parseArgsa = () => {
       suffix: "",
       minify: true,
     },
+    collect: ["ignore-selector", "ignore-ident"],
   });
 
   if (args.help || args._.length === 0) {
@@ -81,6 +89,8 @@ const parseArgsa = () => {
     sourceMap: args["source-map"],
     conversionTablesFile: args["conversion-tables"],
     saveTablesFile: args["save-tables"],
+    ignoreSelectorPatterns: args["ignore-selector"] as string[],
+    ignoreIdentPatterns: args["ignore-ident"] as string[],
   };
 };
 
@@ -118,6 +128,10 @@ const main = async () => {
       suffix: options.suffix,
       seed: options.seed,
       conversionTables: existingConversionTables,
+      ignorePatterns: {
+        selector: options.ignoreSelectorPatterns,
+        ident: options.ignoreIdentPatterns,
+      },
       lightningcssOptions: {
         minify: options.minify,
         sourceMap: options.sourceMap,

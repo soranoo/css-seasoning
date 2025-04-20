@@ -341,3 +341,34 @@ export const isNArray = <T>(arr: T | T[], level: number): arr is T[] => {
   }
   return isNArray(arr[0], level - 1);
 };
+
+/**
+ * Checks if a value matches any of the provided regex patterns.
+ *
+ * @param value - The string value to check.
+ * @param patterns - Array of string or RegExp patterns to match against.
+ * @returns True if the value matches any pattern, false otherwise.
+ *
+ * @example
+ * ```ts
+ * matchesAnyPattern("test", [/^test$/]); // true
+ * matchesAnyPattern("test", ["test"]); // true
+ * matchesAnyPattern("test", [/^foo$/]); // false
+ * matchesAnyPattern("test", ["bar"]); // false
+ * ```
+ */
+export const matchesAnyPattern = (
+  value: string,
+  patterns?: (string | RegExp)[],
+): boolean => {
+  if (!patterns || patterns.length === 0) {
+    return false;
+  }
+
+  return patterns.some((pattern) => {
+    if (typeof pattern === "string") {
+      return new RegExp(pattern).test(value);
+    }
+    return pattern.test(value);
+  });
+};

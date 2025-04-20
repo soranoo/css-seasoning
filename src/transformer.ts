@@ -8,6 +8,7 @@ import {
   generateHash,
   initializeHash,
   isNArray,
+  matchesAnyPattern,
   numberToLetters,
   parseSelectorComponent,
   stringifySelectorComponent,
@@ -24,6 +25,7 @@ export const initTransform = async () => {
  * @param selector - The CSS selector to process.
  * @param selectorConversionTable - A table mapping original values to converted values.
  * @param conv - A conversion function that transforms a string.
+ * @param ignoreSelectorPatterns - Regex patterns for selectors to ignore.
  * @returns The processed selector.
  */
 const INTERNAL_handleSelector = (
@@ -32,6 +34,7 @@ const INTERNAL_handleSelector = (
   conv: (
     ...props: Parameters<ReturnType<typeof createConversionFunction>>
   ) => string | Selector,
+  ignoreSelectorPatterns?: (string | RegExp)[],
 ): Selector | Selector[] => {
   const newSelector = selector.map(
     (component): Selector | Selector[] | (Selector | Selector[])[] => {
@@ -43,19 +46,26 @@ const INTERNAL_handleSelector = (
         case "class": {
           const componentWithType = stringifySelectorComponent(component);
           if (componentWithType) {
+            // Check if we should ignore this selector based on pattern
+            if (ignoreSelectorPatterns && componentWithType) {
+              // For class selectors like ".button", extract "button"
+              // For id selectors like "#header", extract "header"
+              const selectorName = componentWithType.slice(1); // Remove the leading . or #
+
+              if (matchesAnyPattern(selectorName, ignoreSelectorPatterns)) {
+                // Skip transformation for this selector
+                return [component];
+              }
+            }
+
             const convertedSelector = conv(
               componentWithType,
               selectorConversionTable,
               {
                 onNewValueBeforeAdd: (originalValue, valueToSave) => {
-                  switch (originalValue.slice(0, 1)) {
-                    case "#": // If is an id
-                      return `#${valueToSave}`;
-                    case ".": // If is a class
-                      return `.${valueToSave}`;
-                    default:
-                      return valueToSave;
-                  }
+                  // Make sure the value being saved is prefixed with the original value's type identifier
+                  const prefix = originalValue.slice(0, 1);
+                  return `${prefix}${valueToSave}`;
                 },
               },
             );
@@ -73,7 +83,8 @@ const INTERNAL_handleSelector = (
             }
           } else {
             throw new Error(
-              `Unhandled component stringify: ${JSON.stringify(component)
+              `Unhandled component stringify: ${
+                JSON.stringify(component)
               }, the "${component.type}" type should be handled.`,
             );
           }
@@ -88,6 +99,7 @@ const INTERNAL_handleSelector = (
                   sel,
                   selectorConversionTable, // <- passing reference
                   conv,
+                  ignoreSelectorPatterns,
                 );
               });
               break;
@@ -97,6 +109,7 @@ const INTERNAL_handleSelector = (
                   component.selectors, // <- passing reference
                   selectorConversionTable,
                   conv,
+                  ignoreSelectorPatterns,
                 );
               }
               return [component];
@@ -110,6 +123,7 @@ const INTERNAL_handleSelector = (
                   sel,
                   selectorConversionTable,
                   conv,
+                  ignoreSelectorPatterns,
                 );
               });
               if (isNArray(s, 2)) {
@@ -290,12 +304,17 @@ const createConversionFunction = (
  * @param convertFunc - The conversion function to apply to selector or identifier names.
  * @param selectorConversionTable - A table mapping original selectors to converted selectors.
  * @param identConversionTable - A table mapping original identifiers to converted identifiers.
+ * @param ignorePatterns - Patterns for selectors and custom properties to ignore during transformation.
  * @returns A visitor object compatible with lightningcss.
  */
 const INTERNAL_buildVisitor = (
   convertFunc: ReturnType<typeof createConversionFunction>,
   selectorConversionTable: ConversionTable,
   identConversionTable: ConversionTable,
+  ignorePatterns?: {
+    selector?: (string | RegExp)[];
+    ident?: (string | RegExp)[];
+  },
 ) => ({
   Selector(selector: Selector): Selector | Selector[] {
     return INTERNAL_handleSelector(
@@ -310,10 +329,20 @@ const INTERNAL_buildVisitor = (
         }
         return convertFunc(value, conversionTable, ...props);
       },
+      ignorePatterns?.selector,
     );
   },
   DashedIdent(ident: string) {
     const value = ident.slice(2); // remove the '--' prefix
+
+    // Check if this custom property should be ignored based on pattern
+    if (
+      ignorePatterns?.ident && matchesAnyPattern(value, ignorePatterns.ident)
+    ) {
+      // Return the original value without transformation
+      return ident;
+    }
+
     return `--${convertFunc(value, identConversionTable)}`;
   },
 } satisfies Visitor<CustomAtRules>);
@@ -329,6 +358,7 @@ const INTERNAL_buildVisitor = (
  * @param params.suffix - In debug mode, the suffix to append after the value; defaults to an empty string.
  * @param params.seed - The custom seed for hash mode; defaults to 125 if not provided.
  * @param params.conversionTables - Predefined conversion tables for selectors and identifiers. Use if you want to preserve previous mappings.
+ * @param params.ignorePatterns - Patterns for selectors and custom properties to ignore during transformation.
  * @param params.lightningcssOptions - Options for the lightningcss transform.
  * @returns An object containing the transformed CSS and conversion tables.
  */
@@ -340,6 +370,7 @@ export const transform: Transform = ({
   suffix = "",
   seed,
   conversionTables,
+  ignorePatterns,
   lightningcssOptions = {
     minify: true,
   },
@@ -363,6 +394,7 @@ export const transform: Transform = ({
     convertFunc,
     selectorConversionTable,
     identConversionTable,
+    ignorePatterns,
   );
 
   const { code, ...otherOutput } = lightningcssTransform({
