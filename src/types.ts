@@ -24,8 +24,8 @@ export interface ConversionTables {
    * Mapping for identifier conversion.
    *
    * ## **Note**
-   * Make sure the keys are **escaped** properly
-   * and without the '--' prefix.
+   * Make sure the keys are **escaped** properly.
+   * Ensure they do not include the `--` prefix.
    */
   ident: ConversionTable;
 }
