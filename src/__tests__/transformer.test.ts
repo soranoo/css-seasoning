@@ -485,6 +485,257 @@ Deno.test("transform - handles custom properties in :root", () => {
   );
 });
 
+Deno.test("transform - ignores selector patterns", () => {
+  const input = `
+    :root { 
+      --main-color: purple;
+      --theme-color: orange;
+      --accent-color: green;
+    }
+    .button { color: var(--main-color); }
+    .btn-primary { color: var(--theme-color); }
+    #header { background: var(--accent-color); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --a: purple;
+      --b: orange;
+      --c: green;
+    }
+    .d { color: var(--a); }
+    .btn-primary { color: var(--b); }
+    #e { background: var(--c); }
+  `;
+
+  // Test ignoring selector patterns
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    ignorePatterns: {
+      selector: ["^btn-"],
+    },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+
+  // Verify that btn-primary is not in the conversion table
+  assertEquals(
+    Object.keys(result.conversionTables.selector).some((key) =>
+      key.includes("btn-primary")
+    ),
+    false,
+  );
+});
+
+Deno.test("transform - ignores ident patterns", () => {
+  const input = `
+    :root { 
+      --main-color: purple;
+      --theme-color: orange;
+      --accent-color: green;
+    }
+    .button { color: var(--main-color); }
+    .btn-primary { color: var(--theme-color); }
+    #header { background: var(--accent-color); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --a: purple;
+      --theme-color: orange;
+      --b: green;
+    }
+    .c { color: var(--a); }
+    .d { color: var(--theme-color); }
+    #e { background: var(--b); }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    ignorePatterns: {
+      ident: ["^theme-"],
+    },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+
+  // Verify that theme-color is not in the conversion table
+  assertEquals(
+    Object.keys(result.conversionTables.ident).some((key) =>
+      key === "theme-color"
+    ),
+    false,
+  );
+});
+
+Deno.test("transform - ignores both selector and ident patterns", () => {
+  const input = `
+    :root { 
+      --main-color: purple;
+      --theme-color: orange;
+      --accent-color: green;
+    }
+    .button { color: var(--main-color); }
+    .btn-primary { color: var(--theme-color); }
+    #header { background: var(--accent-color); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --a: purple;
+      --theme-color: orange;
+      --b: green;
+    }
+    .c { color: var(--a); }
+    .btn-primary { color: var(--theme-color); }
+    #d { background: var(--b); }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    ignorePatterns: {
+      selector: ["^btn-"],
+      ident: ["^theme-"],
+    },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+
+  // Verify that neither btn-primary nor theme-color are in their respective conversion tables
+  assertEquals(
+    Object.keys(result.conversionTables.selector).some((key) =>
+      key.includes("btn-primary")
+    ),
+    false,
+  );
+  assertEquals(
+    Object.keys(result.conversionTables.ident).some((key) =>
+      key === "theme-color"
+    ),
+    false,
+  );
+});
+
+Deno.test("transform - ignores patterns using RegExp objects", () => {
+  const input = `
+    :root { 
+      --main-color: purple;
+      --theme-color: orange;
+      --accent-color: green;
+    }
+    .button { color: var(--main-color); }
+    .btn-primary { color: var(--theme-color); }
+    #header { background: var(--accent-color); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --a: purple;
+      --theme-color: orange;
+      --accent-color: green;
+    }
+    .b { color: var(--a); }
+    .btn-primary { color: var(--theme-color); }
+    #header { background: var(--accent-color); }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    ignorePatterns: {
+      selector: [/^btn-/, /header$/],
+      ident: [/^theme-/, /accent/],
+    },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+
+  // Verify which items should be in the conversion tables and which should not
+  assertEquals(
+    Object.keys(result.conversionTables.selector).some((key) =>
+      key.includes("btn-primary")
+    ),
+    false,
+  );
+  assertEquals(
+    Object.keys(result.conversionTables.selector).some((key) =>
+      key.includes("header")
+    ),
+    false,
+  );
+  assertEquals(
+    Object.keys(result.conversionTables.ident).some((key) =>
+      key === "theme-color"
+    ),
+    false,
+  );
+  assertEquals(
+    Object.keys(result.conversionTables.ident).some((key) =>
+      key === "accent-color"
+    ),
+    false,
+  );
+});
+
+Deno.test("transform - ignores patterns with mixed string and RegExp", () => {
+  const input = `
+    :root { 
+      --main-color: purple;
+      --theme-color: orange;
+      --brand-color: yellow;
+    }
+    .button { color: var(--main-color); }
+    .btn-primary { color: var(--theme-color); }
+    .brand-logo { background: var(--brand-color); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --a: purple;
+      --theme-color: orange;
+      --brand-color: yellow;
+    }
+    .b { color: var(--a); }
+    .btn-primary { color: var(--theme-color); }
+    .c { background: var(--brand-color); }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    ignorePatterns: {
+      selector: ["^btn-"], // String pattern
+      ident: [/^(theme|brand)-/], // RegExp pattern
+    },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+
+  // Check both string and RegExp pattern matches
+  assertEquals(
+    Object.keys(result.conversionTables.ident).includes("theme-color"),
+    false,
+  );
+  assertEquals(
+    Object.keys(result.conversionTables.ident).includes("brand-color"),
+    false,
+  );
+  assertEquals(
+    Object.keys(result.conversionTables.selector).some((key) =>
+      key.includes("btn-primary")
+    ),
+    false,
+  );
+});
+
 /**
  * Removes all spaces from a string.
  *

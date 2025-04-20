@@ -235,7 +235,7 @@ export const stringifySelectorComponentComplex = (
     },
   });
 
-  const removePlaceholderCssBodyRegex = new RegExp(placeholderCssBody + "$");
+  const removePlaceholderCssBodyRegex = new RegExp(`${placeholderCssBody}$`);
 
   return new TextDecoder().decode(code).replace(
     removePlaceholderCssBodyRegex,
@@ -305,11 +305,11 @@ export const stringifySelectorComponent = (
  */
 export const numberToLetters = (num: number): string => {
   let s = "";
-  num++; // make it 1-indexed
-  while (num > 0) {
-    const rem = (num - 1) % 26;
+  let n = num + 1; // make it 1-indexed
+  while (n > 0) {
+    const rem = (n - 1) % 26;
     s = String.fromCharCode(97 + rem) + s;
-    num = Math.floor((num - 1) / 26);
+    n = Math.floor((n - 1) / 26);
   }
   return s;
 };
@@ -340,4 +340,35 @@ export const isNArray = <T>(arr: T | T[], level: number): arr is T[] => {
     return false;
   }
   return isNArray(arr[0], level - 1);
+};
+
+/**
+ * Checks if a value matches any of the provided regex patterns.
+ *
+ * @param value - The string value to check.
+ * @param patterns - Array of string or RegExp patterns to match against.
+ * @returns True if the value matches any pattern, false otherwise.
+ *
+ * @example
+ * ```ts
+ * matchesAnyPattern("test", [/^test$/]); // true
+ * matchesAnyPattern("test", ["test"]); // true
+ * matchesAnyPattern("test", [/^foo$/]); // false
+ * matchesAnyPattern("test", ["bar"]); // false
+ * ```
+ */
+export const matchesAnyPattern = (
+  value: string,
+  patterns?: (string | RegExp)[],
+): boolean => {
+  if (!patterns || patterns.length === 0) {
+    return false;
+  }
+
+  return patterns.some((pattern) => {
+    if (typeof pattern === "string") {
+      return new RegExp(pattern).test(value);
+    }
+    return pattern.test(value);
+  });
 };

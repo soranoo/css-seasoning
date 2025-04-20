@@ -163,17 +163,61 @@ css-seasoning new-styles.css --conversion-tables tables.json
 
 This ensures that the same mappings are used across multiple CSS files or builds.
 
+#### Example: Ignoring Specific Patterns
+
+You can selectively ignore certain selectors or custom properties that you don't want to transform using regex patterns:
+
+```bash
+# Ignore Bootstrap utility classes starting with 'btn-'
+css-seasoning styles.css --ignore-selector "^btn-"
+
+# Ignore both bootstrap buttons and theme color custom properties
+css-seasoning styles.css --ignore-selector "^btn-" --ignore-ident "^theme-"
+```
+
+Input:
+```css
+:root {
+  --main-color: blue;
+  --theme-primary: red;
+}
+
+.button {
+  color: var(--main-color);
+}
+
+.btn-primary {
+  color: var(--theme-primary);
+}
+```
+
+Output with ignore patterns:
+```css
+:root {
+  --a:blue; --theme-primary:red;
+}
+.b {
+  color:var(--a);
+}
+.btn-primary {
+  color:var(--theme-primary);
+}
+```
+
+This allows you to keep certain naming conventions intact (like framework-specific class names or theme variables) while still transforming the rest of your CSS.
+
 ## 📖 Config Options Reference
 
-| Option                       | Type                                    | Default                  | Description                                                                                                   |
-| ---------------------------- | --------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `mode`                       | `"hash"` \| `"minimal"` \| `"debug"`    | `"hash"`                 | The transformation mode to use                                                                                |
-| `debugSymbol`                | `string`                                | `"_"`                    | Symbol to use in debug mode                                                                                   |
-| `prefix`                     | `string`                                | `""`                     | Prefix to add after debug symbol in debug mode                                                                |
-| `suffix`                     | `string`                                | `""`                     | Suffix to add at the end in debug mode                                                                        |
-| `seed`                       | `number`                                | `undefined`              | Seed for hash generation in hash mode                                                                         |
-| `conversionTables`           | `{ selector?: {}, ident?: {} }`         | `undefined`              | Predefined conversion tables for selectors and identifiers                                                    |
-| `lightningcssOptions`        | `object`                                | `{ minify: true }`       | Options for the lightningcss transform                                                                        |
+| Option                 | Type                                 | Default      | Description                                                      |
+| ---------------------- | ------------------------------------ | ------------ | ---------------------------------------------------------------- |
+| `mode`                 | `"hash"` \| `"minimal"` \| `"debug"` | `"hash"`     | The transformation mode to use                                   |
+| `debugSymbol`          | `string`                             | `"_"`        | Symbol to use in debug mode                                      |
+| `prefix`               | `string`                             | `""`         | Prefix to add after debug symbol in debug mode                   |
+| `suffix`               | `string`                             | `""`         | Suffix to add at the end in debug mode                           |
+| `seed`                 | `number`                             | `undefined`  | Seed for hash generation in hash mode                            |
+| `ignorePatterns`       | `{selector?: (string \| RegExp)[], ident?: (string \| RegExp)[]}` | `undefined` | Patterns for selectors and custom properties to ignore during transformation |
+| `conversionTables`     | `{ selector?: {}, ident?: {} }`      | `undefined`  | Predefined conversion tables for selectors and identifiers       |
+| `lightningcssOptions`  | `object`                             | `{ minify: true }` | Options for the lightningcss transform                     |
 
 ### All options in one place 📦
 
@@ -189,6 +233,10 @@ const result = transform({
   prefix: "prefix-",     // Prefix in debug mode (after symbol)
   suffix: "-suffix",     // Suffix in debug mode
   seed: 123,             // Custom seed for hash generation
+  ignorePatterns: {      // Patterns to ignore during transformation
+    selector: ["^btn-", /header$/],
+    ident: ["^theme-"]
+  },
   conversionTables: {    // Optional reusable mappings
     selector: { "\\.button": "\\.preserved-class" },
     ident: { "color": "preserved-var" }
