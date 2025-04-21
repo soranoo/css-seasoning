@@ -373,8 +373,9 @@ export const transform: Transform = ({
   },
 }) => {
   // Use user provided conversion tables if available, otherwise create new ones
-  const selectorConversionTable: ConversionTable = conversionTables?.selectors ??
-    {};
+  const selectorConversionTable: ConversionTable =
+    conversionTables?.selectors ??
+      {};
   const identConversionTable: ConversionTable = conversionTables?.idents ?? {};
 
   // Create conversion function based on the selected mode and custom seed
