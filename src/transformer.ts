@@ -1,5 +1,5 @@
 import type { CustomAtRules, Selector, Visitor } from "lightningcss-wasm";
-import type { ConversionTable, Transform } from "@/types.ts";
+import type { ConversionTable, Transform, TransformProps } from "@/types.ts";
 
 import init, { transform as lightningcssTransform } from "lightningcss-wasm";
 import {
@@ -311,10 +311,7 @@ const INTERNAL_buildVisitor = (
   convertFunc: ReturnType<typeof createConversionFunction>,
   selectorConversionTable: ConversionTable,
   identConversionTable: ConversionTable,
-  ignorePatterns?: {
-    selector?: (string | RegExp)[];
-    ident?: (string | RegExp)[];
-  },
+  ignorePatterns?: TransformProps["ignorePatterns"],
 ) => ({
   Selector(selector: Selector): Selector | Selector[] {
     return INTERNAL_handleSelector(
@@ -329,7 +326,7 @@ const INTERNAL_buildVisitor = (
         }
         return convertFunc(value, conversionTable, ...props);
       },
-      ignorePatterns?.selector,
+      ignorePatterns?.selectors,
     );
   },
   DashedIdent(ident: string) {
@@ -337,7 +334,7 @@ const INTERNAL_buildVisitor = (
 
     // Check if this custom property should be ignored based on pattern
     if (
-      ignorePatterns?.ident && matchesAnyPattern(value, ignorePatterns.ident)
+      ignorePatterns?.idents && matchesAnyPattern(value, ignorePatterns.idents)
     ) {
       // Return the original value without transformation
       return ident;
@@ -376,9 +373,10 @@ export const transform: Transform = ({
   },
 }) => {
   // Use user provided conversion tables if available, otherwise create new ones
-  const selectorConversionTable: ConversionTable = conversionTables?.selector ??
-    {};
-  const identConversionTable: ConversionTable = conversionTables?.ident ?? {};
+  const selectorConversionTable: ConversionTable =
+    conversionTables?.selectors ??
+      {};
+  const identConversionTable: ConversionTable = conversionTables?.idents ?? {};
 
   // Create conversion function based on the selected mode and custom seed
   const convertFunc = createConversionFunction(
@@ -408,8 +406,8 @@ export const transform: Transform = ({
   return {
     css: newCss,
     conversionTables: {
-      selector: selectorConversionTable,
-      ident: identConversionTable,
+      selectors: selectorConversionTable,
+      idents: identConversionTable,
     },
     ...otherOutput,
   };

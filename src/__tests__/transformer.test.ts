@@ -28,8 +28,8 @@ Deno.test("transform - hash mode (default)", () => {
   assertEquals(typeof result.css, "string");
 
   // Conversion tables check
-  INTERNAL_assertConversionTable(result.conversionTables.selector, 2);
-  INTERNAL_assertConversionTable(result.conversionTables.ident, 2);
+  INTERNAL_assertConversionTable(result.conversionTables.selectors, 2);
+  INTERNAL_assertConversionTable(result.conversionTables.idents, 2);
 
   // Consistent hashing check
   const secondResult = transform({
@@ -64,8 +64,8 @@ Deno.test("transform - minimal mode", () => {
   // Check if using alphabetical naming
   INTERNAL_assertCss(result.css, expectedOutput);
 
-  INTERNAL_assertConversionTable(result.conversionTables.selector, 2);
-  INTERNAL_assertConversionTable(result.conversionTables.ident, 2);
+  INTERNAL_assertConversionTable(result.conversionTables.selectors, 2);
+  INTERNAL_assertConversionTable(result.conversionTables.idents, 2);
 });
 
 Deno.test("transform - debug mode", () => {
@@ -96,11 +96,11 @@ Deno.test("transform - debug mode", () => {
 
   // Check if new conversion tables are created
   INTERNAL_assertConversionTable(
-    result.conversionTables.selector,
+    result.conversionTables.selectors,
     1,
   );
   INTERNAL_assertConversionTable(
-    result.conversionTables.ident,
+    result.conversionTables.idents,
     1,
   );
 });
@@ -132,12 +132,12 @@ Deno.test("transform - custom seed in hash mode", () => {
 
 Deno.test("transform - preserves conversion tables", () => {
   const existingTables = {
-    selector: {
+    selectors: {
       "\\.existing": "\\.preserved-class",
       "\\.existing-2": "\\.preserved-class-2 \\#preserved-id",
     },
-    ident: { "existing-var": "preserved-var" },
-  };
+    idents: { "existing-var": "preserved-var" },
+  } satisfies ConversionTables;
   const input = `
     :root { --existing-var: value; --other-var: value; }
     .test { color: var(--other-var); } 
@@ -160,26 +160,26 @@ Deno.test("transform - preserves conversion tables", () => {
 
   // Check if existing mappings are preserved
   assertEquals(
-    result.conversionTables.selector[
-      Object.keys(existingTables.selector)[0]
+    result.conversionTables.selectors[
+      Object.keys(existingTables.selectors)[0]
     ],
-    Object.values(existingTables.selector)[0],
+    Object.values(existingTables.selectors)[0],
   );
   assertEquals(
-    result.conversionTables.ident[
-      Object.keys(existingTables.ident)[0]
+    result.conversionTables.idents[
+      Object.keys(existingTables.idents)[0]
     ],
-    Object.values(existingTables.ident)[0],
+    Object.values(existingTables.idents)[0],
   );
   INTERNAL_assertCss(result.css, expectedOutput);
 
   // Check if new mappings are added
   INTERNAL_assertConversionTable(
-    result.conversionTables.selector,
+    result.conversionTables.selectors,
     3,
   );
   INTERNAL_assertConversionTable(
-    result.conversionTables.ident,
+    result.conversionTables.idents,
     2,
   );
 });
@@ -209,8 +209,8 @@ Deno.test("transform - handles complex selectors", () => {
 
   // Check if the output is different but valid
   INTERNAL_assertCss(result.css, expectedOutput);
-  INTERNAL_assertConversionTable(result.conversionTables.selector, 3);
-  INTERNAL_assertConversionTable(result.conversionTables.ident, 0);
+  INTERNAL_assertConversionTable(result.conversionTables.selectors, 3);
+  INTERNAL_assertConversionTable(result.conversionTables.idents, 0);
 });
 
 Deno.test("transform - handles basic selectors", () => {
@@ -227,11 +227,11 @@ Deno.test("transform - handles basic selectors", () => {
     * { box-sizing: border-box; }
   `;
   const expectedConversionTable: ConversionTables = {
-    selector: {
+    selectors: {
       "\\#myId": "\\#a",
       "\\.myClass": "\\.b",
     },
-    ident: {},
+    idents: {},
   };
 
   const result = transform({
@@ -243,12 +243,12 @@ Deno.test("transform - handles basic selectors", () => {
   INTERNAL_assertCss(result.css, expectedOutput);
 
   assertObjectMatch(
-    result.conversionTables.selector,
-    expectedConversionTable.selector,
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
   );
   assertObjectMatch(
-    result.conversionTables.ident,
-    expectedConversionTable.ident,
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -268,7 +268,7 @@ Deno.test("transform - handles pseudo-classes", () => {
     .f:is(.g, .h) { border: 1px solid red; }
   `;
   const expectedConversionTable: ConversionTables = {
-    selector: {
+    selectors: {
       "\\.item": "\\.a",
       "\\.active": "\\.b",
       "\\.menu": "\\.c",
@@ -278,7 +278,7 @@ Deno.test("transform - handles pseudo-classes", () => {
       "\\.important": "\\.g",
       "\\.highlight": "\\.h",
     },
-    ident: {},
+    idents: {},
   };
 
   const result = transform({
@@ -291,12 +291,12 @@ Deno.test("transform - handles pseudo-classes", () => {
 
   // Function-like pseudo-classes should not be converted, but class selectors should
   assertObjectMatch(
-    result.conversionTables.selector,
-    expectedConversionTable.selector,
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
   );
   assertObjectMatch(
-    result.conversionTables.ident,
-    expectedConversionTable.ident,
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -310,10 +310,10 @@ Deno.test("transform - handles host pseudo-class", () => {
     :host(.a) { font-weight: bold; }
   `;
   const expectedConversionTable: ConversionTables = {
-    selector: {
+    selectors: {
       "\\.classname": "\\.a",
     },
-    ident: {},
+    idents: {},
   };
 
   const result = transform({
@@ -326,12 +326,12 @@ Deno.test("transform - handles host pseudo-class", () => {
 
   // Host selectors should be preserved
   assertObjectMatch(
-    result.conversionTables.selector,
-    expectedConversionTable.selector,
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
   );
   assertObjectMatch(
-    result.conversionTables.ident,
-    expectedConversionTable.ident,
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -345,8 +345,8 @@ Deno.test("transform - handles attribute selectors", () => {
     [data-role="button"] { cursor: pointer; }
   `;
   const expectedConversionTable: ConversionTables = {
-    selector: {},
-    ident: {},
+    selectors: {},
+    idents: {},
   };
 
   const result = transform({
@@ -359,12 +359,12 @@ Deno.test("transform - handles attribute selectors", () => {
 
   // Attribute selectors should be preserved
   assertObjectMatch(
-    result.conversionTables.selector,
-    expectedConversionTable.selector,
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
   );
   assertObjectMatch(
-    result.conversionTables.ident,
-    expectedConversionTable.ident,
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -378,13 +378,13 @@ Deno.test("transform - handles combinators", () => {
     .c ~ .d { padding: 5px; }
   `;
   const expectedConversionTable: ConversionTables = {
-    selector: {
+    selectors: {
       "\\.parent": "\\.a",
       "\\.child": "\\.b",
       "\\.sibling": "\\.c",
       "\\.next-sibling": "\\.d",
     },
-    ident: {},
+    idents: {},
   };
 
   const result = transform({
@@ -397,12 +397,12 @@ Deno.test("transform - handles combinators", () => {
 
   // Each class selector should be converted
   assertObjectMatch(
-    result.conversionTables.selector,
-    expectedConversionTable.selector,
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
   );
   assertObjectMatch(
-    result.conversionTables.ident,
-    expectedConversionTable.ident,
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -418,12 +418,12 @@ Deno.test("transform - handles multiple complex selectors", () => {
     }
   `;
   const expectedConversionTable: ConversionTables = {
-    selector: {
+    selectors: {
       "\\.complex": "\\.a",
       "\\.simple": "\\.b",
       "\\.advanced": "\\.c",
     },
-    ident: {},
+    idents: {},
   };
 
   const result = transform({
@@ -436,12 +436,12 @@ Deno.test("transform - handles multiple complex selectors", () => {
 
   // Should convert all three class selectors
   assertObjectMatch(
-    result.conversionTables.selector,
-    expectedConversionTable.selector,
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
   );
   assertObjectMatch(
-    result.conversionTables.ident,
-    expectedConversionTable.ident,
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -459,8 +459,8 @@ Deno.test("transform - handles custom properties in :root", () => {
     }
   `;
   const expectedConversionTable: ConversionTables = {
-    selector: {},
-    ident: {
+    selectors: {},
+    idents: {
       "main-color": "a",
       "accent-color": "b",
     },
@@ -476,12 +476,12 @@ Deno.test("transform - handles custom properties in :root", () => {
 
   // Should convert both custom properties
   assertObjectMatch(
-    result.conversionTables.selector,
-    expectedConversionTable.selector,
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
   );
   assertObjectMatch(
-    result.conversionTables.ident,
-    expectedConversionTable.ident,
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -513,7 +513,7 @@ Deno.test("transform - ignores selector patterns", () => {
     css: input,
     mode: "minimal",
     ignorePatterns: {
-      selector: ["^btn-"],
+      selectors: ["^btn-"],
     },
     lightningcssOptions: { minify: false },
   });
@@ -522,7 +522,7 @@ Deno.test("transform - ignores selector patterns", () => {
 
   // Verify that btn-primary is not in the conversion table
   assertEquals(
-    Object.keys(result.conversionTables.selector).some((key) =>
+    Object.keys(result.conversionTables.selectors).some((key) =>
       key.includes("btn-primary")
     ),
     false,
@@ -556,7 +556,7 @@ Deno.test("transform - ignores ident patterns", () => {
     css: input,
     mode: "minimal",
     ignorePatterns: {
-      ident: ["^theme-"],
+      idents: ["^theme-"],
     },
     lightningcssOptions: { minify: false },
   });
@@ -565,7 +565,7 @@ Deno.test("transform - ignores ident patterns", () => {
 
   // Verify that theme-color is not in the conversion table
   assertEquals(
-    Object.keys(result.conversionTables.ident).some((key) =>
+    Object.keys(result.conversionTables.idents).some((key) =>
       key === "theme-color"
     ),
     false,
@@ -599,8 +599,8 @@ Deno.test("transform - ignores both selector and ident patterns", () => {
     css: input,
     mode: "minimal",
     ignorePatterns: {
-      selector: ["^btn-"],
-      ident: ["^theme-"],
+      selectors: ["^btn-"],
+      idents: ["^theme-"],
     },
     lightningcssOptions: { minify: false },
   });
@@ -609,13 +609,13 @@ Deno.test("transform - ignores both selector and ident patterns", () => {
 
   // Verify that neither btn-primary nor theme-color are in their respective conversion tables
   assertEquals(
-    Object.keys(result.conversionTables.selector).some((key) =>
+    Object.keys(result.conversionTables.selectors).some((key) =>
       key.includes("btn-primary")
     ),
     false,
   );
   assertEquals(
-    Object.keys(result.conversionTables.ident).some((key) =>
+    Object.keys(result.conversionTables.idents).some((key) =>
       key === "theme-color"
     ),
     false,
@@ -649,8 +649,8 @@ Deno.test("transform - ignores patterns using RegExp objects", () => {
     css: input,
     mode: "minimal",
     ignorePatterns: {
-      selector: [/^btn-/, /header$/],
-      ident: [/^theme-/, /accent/],
+      selectors: [/^btn-/, /header$/],
+      idents: [/^theme-/, /accent/],
     },
     lightningcssOptions: { minify: false },
   });
@@ -659,25 +659,25 @@ Deno.test("transform - ignores patterns using RegExp objects", () => {
 
   // Verify which items should be in the conversion tables and which should not
   assertEquals(
-    Object.keys(result.conversionTables.selector).some((key) =>
+    Object.keys(result.conversionTables.selectors).some((key) =>
       key.includes("btn-primary")
     ),
     false,
   );
   assertEquals(
-    Object.keys(result.conversionTables.selector).some((key) =>
+    Object.keys(result.conversionTables.selectors).some((key) =>
       key.includes("header")
     ),
     false,
   );
   assertEquals(
-    Object.keys(result.conversionTables.ident).some((key) =>
+    Object.keys(result.conversionTables.idents).some((key) =>
       key === "theme-color"
     ),
     false,
   );
   assertEquals(
-    Object.keys(result.conversionTables.ident).some((key) =>
+    Object.keys(result.conversionTables.idents).some((key) =>
       key === "accent-color"
     ),
     false,
@@ -711,8 +711,8 @@ Deno.test("transform - ignores patterns with mixed string and RegExp", () => {
     css: input,
     mode: "minimal",
     ignorePatterns: {
-      selector: ["^btn-"], // String pattern
-      ident: [/^(theme|brand)-/], // RegExp pattern
+      selectors: ["^btn-"], // String pattern
+      idents: [/^(theme|brand)-/], // RegExp pattern
     },
     lightningcssOptions: { minify: false },
   });
@@ -721,15 +721,15 @@ Deno.test("transform - ignores patterns with mixed string and RegExp", () => {
 
   // Check both string and RegExp pattern matches
   assertEquals(
-    Object.keys(result.conversionTables.ident).includes("theme-color"),
+    Object.keys(result.conversionTables.idents).includes("theme-color"),
     false,
   );
   assertEquals(
-    Object.keys(result.conversionTables.ident).includes("brand-color"),
+    Object.keys(result.conversionTables.idents).includes("brand-color"),
     false,
   );
   assertEquals(
-    Object.keys(result.conversionTables.selector).some((key) =>
+    Object.keys(result.conversionTables.selectors).some((key) =>
       key.includes("btn-primary")
     ),
     false,

@@ -35,8 +35,8 @@ const main = async () => {
   // save the transformed CSS
   Deno.writeTextFileSync("./sample/test-transformed.css", t.css);
   console.log({
-    identConversionTable: t.conversionTables.ident,
-    selectorConversionTable: t.conversionTables.selector,
+    identConversionTable: t.conversionTables.idents,
+    selectorConversionTable: t.conversionTables.selectors,
   });
 }
 

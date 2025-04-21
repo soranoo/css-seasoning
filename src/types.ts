@@ -18,7 +18,7 @@ export interface ConversionTables {
    * ## **Note**
    * Make sure the keys are **escaped** properly.
    */
-  selector: ConversionTable;
+  selectors: ConversionTable;
 
   /**
    * Mapping for identifier conversion.
@@ -27,7 +27,7 @@ export interface ConversionTables {
    * Make sure the keys are **escaped** properly.
    * Ensure they do not include the `--` prefix.
    */
-  ident: ConversionTable;
+  idents: ConversionTable;
 }
 
 export interface TransformProps {
@@ -82,14 +82,14 @@ export interface TransformProps {
      * Any selector that matches one of these regular expressions will be left unchanged.
      * Patterns should match the selector name without the prefix (e.g., "button" for ".button").
      */
-    selector?: (string | RegExp)[];
+    selectors?: (string | RegExp)[];
 
     /**
      * Patterns for custom properties (identifiers) to ignore during transformation.
      * Any custom property that matches one of these regular expressions will be left unchanged.
      * Patterns should match the property name without the '--' prefix (e.g., "color" for "--color").
      */
-    ident?: (string | RegExp)[];
+    idents?: (string | RegExp)[];
   };
 
   /**
