@@ -29,6 +29,7 @@
     "jsr:@ts-morph/common@0.24": "0.24.0",
     "npm:@sebbo2002/semantic-release-jsr@^2.0.5": "2.0.5",
     "npm:@semantic-release/git@^10.0.1": "10.0.1_semantic-release@24.2.3__marked@12.0.2",
+    "npm:@semantic-release/github@^11.0.1": "11.0.1_semantic-release@24.2.3__marked@12.0.2_@octokit+core@6.1.4",
     "npm:@semantic-release/npm@^12.0.1": "12.0.1_semantic-release@24.2.3__marked@12.0.2",
     "npm:lightningcss-wasm@^1.29.1": "1.29.1",
     "npm:semantic-release@^24.2.3": "24.2.3_marked@12.0.2",
@@ -173,12 +174,12 @@
     "@isaacs/cliui@8.0.2": {
       "integrity": "sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==",
       "dependencies": [
-        "string-width@5.1.2",
         "string-width-cjs@npm:string-width@4.2.3",
-        "strip-ansi@7.1.0",
+        "string-width@5.1.2",
         "strip-ansi-cjs@npm:strip-ansi@6.0.1",
-        "wrap-ansi@8.1.0",
-        "wrap-ansi-cjs@npm:wrap-ansi@7.0.0"
+        "strip-ansi@7.1.0",
+        "wrap-ansi-cjs@npm:wrap-ansi@7.0.0",
+        "wrap-ansi@8.1.0"
       ]
     },
     "@isaacs/fs-minipass@4.0.1": {
@@ -478,7 +479,7 @@
         "import-from-esm",
         "lodash-es",
         "micromatch",
-        "semantic-release"
+        "semantic-release@24.2.3_marked@12.0.2_@octokit+core@6.1.4"
       ]
     },
     "@semantic-release/error@3.0.0": {
@@ -498,7 +499,29 @@
         "lodash",
         "micromatch",
         "p-reduce@2.1.0",
-        "semantic-release"
+        "semantic-release@24.2.3_marked@12.0.2"
+      ]
+    },
+    "@semantic-release/github@11.0.1_semantic-release@24.2.3__marked@12.0.2_@octokit+core@6.1.4": {
+      "integrity": "sha512-Z9cr0LgU/zgucbT9cksH0/pX9zmVda9hkDPcgIE0uvjMQ8w/mElDivGjx1w1pEQ+MuQJ5CBq3VCF16S6G4VH3A==",
+      "dependencies": [
+        "@octokit/core",
+        "@octokit/plugin-paginate-rest",
+        "@octokit/plugin-retry",
+        "@octokit/plugin-throttling",
+        "@semantic-release/error@4.0.0",
+        "aggregate-error@5.0.0",
+        "debug",
+        "dir-glob",
+        "globby",
+        "http-proxy-agent",
+        "https-proxy-agent",
+        "issue-parser",
+        "lodash-es",
+        "mime",
+        "p-filter",
+        "semantic-release@24.2.3_marked@12.0.2_@octokit+core@6.1.4",
+        "url-join"
       ]
     },
     "@semantic-release/github@11.0.1_semantic-release@24.2.3__marked@12.0.2_marked@12.0.2_@octokit+core@6.1.4": {
@@ -519,7 +542,7 @@
         "lodash-es",
         "mime",
         "p-filter",
-        "semantic-release",
+        "semantic-release@24.2.3_marked@12.0.2",
         "url-join"
       ]
     },
@@ -537,7 +560,7 @@
         "rc",
         "read-pkg",
         "registry-auth-token",
-        "semantic-release",
+        "semantic-release@24.2.3_marked@12.0.2",
         "semver",
         "tempy"
       ]
@@ -556,7 +579,7 @@
         "rc",
         "read-pkg",
         "registry-auth-token",
-        "semantic-release",
+        "semantic-release@24.2.3_marked@12.0.2_@octokit+core@6.1.4",
         "semver",
         "tempy"
       ]
@@ -574,7 +597,7 @@
         "into-stream",
         "lodash-es",
         "read-package-up",
-        "semantic-release"
+        "semantic-release@24.2.3_marked@12.0.2_@octokit+core@6.1.4"
       ]
     },
     "@sigstore/bundle@3.1.0": {
@@ -743,10 +766,10 @@
         "fs-minipass@3.0.3",
         "glob",
         "lru-cache",
-        "minipass@7.1.2",
         "minipass-collect",
         "minipass-flush",
         "minipass-pipeline",
+        "minipass@7.1.2",
         "p-map@7.0.3",
         "ssri",
         "tar@7.4.3",
@@ -814,8 +837,8 @@
         "chalk@4.1.2",
         "highlight.js",
         "mz",
-        "parse5@5.1.1",
         "parse5-htmlparser2-tree-adapter",
+        "parse5@5.1.1",
         "yargs@16.2.0"
       ]
     },
@@ -1639,10 +1662,10 @@
         "@npmcli/agent",
         "cacache",
         "http-cache-semantics",
-        "minipass@7.1.2",
         "minipass-fetch",
         "minipass-flush",
         "minipass-pipeline",
+        "minipass@7.1.2",
         "negotiator",
         "proc-log",
         "promise-retry",
@@ -1709,8 +1732,8 @@
       "integrity": "sha512-j7U11C5HXigVuutxebFadoYBbd7VSdZWggSe64NVdvWNBqGAiXPL2QVCehjmw7lY1oF9gOllYbORh+hiNgfPgQ==",
       "dependencies": [
         "encoding",
-        "minipass@7.1.2",
         "minipass-sized",
+        "minipass@7.1.2",
         "minizlib@3.0.1"
       ]
     },
@@ -1897,8 +1920,8 @@
         "@npmcli/redact",
         "jsonparse",
         "make-fetch-happen",
-        "minipass@7.1.2",
         "minipass-fetch",
+        "minipass@7.1.2",
         "minizlib@3.0.1",
         "npm-package-arg",
         "proc-log"
@@ -1967,8 +1990,8 @@
         "libnpmversion",
         "make-fetch-happen",
         "minimatch",
-        "minipass@7.1.2",
         "minipass-pipeline",
+        "minipass@7.1.2",
         "ms",
         "node-gyp",
         "nopt",
@@ -2343,7 +2366,41 @@
       "dependencies": [
         "@semantic-release/commit-analyzer",
         "@semantic-release/error@4.0.0",
-        "@semantic-release/github",
+        "@semantic-release/github@11.0.1_semantic-release@24.2.3__marked@12.0.2_marked@12.0.2_@octokit+core@6.1.4",
+        "@semantic-release/npm@12.0.1_semantic-release@24.2.3__marked@12.0.2_marked@12.0.2",
+        "@semantic-release/release-notes-generator",
+        "aggregate-error@5.0.0",
+        "cosmiconfig",
+        "debug",
+        "env-ci",
+        "execa@9.5.2",
+        "figures@6.1.0",
+        "find-versions",
+        "get-stream@6.0.1",
+        "git-log-parser",
+        "hook-std",
+        "hosted-git-info@8.0.2",
+        "import-from-esm",
+        "lodash-es",
+        "marked",
+        "marked-terminal",
+        "micromatch",
+        "p-each-series",
+        "p-reduce@3.0.0",
+        "read-package-up",
+        "resolve-from@5.0.0",
+        "semver",
+        "semver-diff",
+        "signale",
+        "yargs@17.7.2"
+      ]
+    },
+    "semantic-release@24.2.3_marked@12.0.2_@octokit+core@6.1.4": {
+      "integrity": "sha512-KRhQG9cUazPavJiJEFIJ3XAMjgfd0fcK3B+T26qOl8L0UG5aZUjeRfREO0KM5InGtYwxqiiytkJrbcYoLDEv0A==",
+      "dependencies": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/error@4.0.0",
+        "@semantic-release/github@11.0.1_semantic-release@24.2.3__marked@12.0.2_marked@12.0.2_@octokit+core@6.1.4",
         "@semantic-release/npm@12.0.1_semantic-release@24.2.3__marked@12.0.2_marked@12.0.2",
         "@semantic-release/release-notes-generator",
         "aggregate-error@5.0.0",
@@ -2823,6 +2880,7 @@
       "jsr:@std/assert@1",
       "npm:@sebbo2002/semantic-release-jsr@^2.0.5",
       "npm:@semantic-release/git@^10.0.1",
+      "npm:@semantic-release/github@^11.0.1",
       "npm:@semantic-release/npm@^12.0.1",
       "npm:lightningcss-wasm@^1.29.1",
       "npm:semantic-release@^24.2.3",

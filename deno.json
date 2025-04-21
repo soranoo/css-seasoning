@@ -15,6 +15,7 @@
     "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
     "@sebbo2002/semantic-release-jsr": "npm:@sebbo2002/semantic-release-jsr@^2.0.5",
     "@semantic-release/git": "npm:@semantic-release/git@^10.0.1",
+    "@semantic-release/github": "npm:@semantic-release/github@^11.0.1",
     "@semantic-release/npm": "npm:@semantic-release/npm@^12.0.1",
     "@std/assert": "jsr:@std/assert@1",
     "lightningcss-wasm": "npm:lightningcss-wasm@^1.29.1",
