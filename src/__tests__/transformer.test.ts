@@ -132,12 +132,12 @@ Deno.test("transform - custom seed in hash mode", () => {
 
 Deno.test("transform - preserves conversion tables", () => {
   const existingTables = {
-    selector: {
+    selectors: {
       "\\.existing": "\\.preserved-class",
       "\\.existing-2": "\\.preserved-class-2 \\#preserved-id",
     },
-    ident: { "existing-var": "preserved-var" },
-  };
+    idents: { "existing-var": "preserved-var" },
+  } satisfies ConversionTables;
   const input = `
     :root { --existing-var: value; --other-var: value; }
     .test { color: var(--other-var); } 
@@ -161,15 +161,15 @@ Deno.test("transform - preserves conversion tables", () => {
   // Check if existing mappings are preserved
   assertEquals(
     result.conversionTables.selectors[
-      Object.keys(existingTables.selector)[0]
+      Object.keys(existingTables.selectors)[0]
     ],
-    Object.values(existingTables.selector)[0],
+    Object.values(existingTables.selectors)[0],
   );
   assertEquals(
     result.conversionTables.idents[
-      Object.keys(existingTables.ident)[0]
+      Object.keys(existingTables.idents)[0]
     ],
-    Object.values(existingTables.ident)[0],
+    Object.values(existingTables.idents)[0],
   );
   INTERNAL_assertCss(result.css, expectedOutput);
 

@@ -1,5 +1,5 @@
 import type { CustomAtRules, Selector, Visitor } from "lightningcss-wasm";
-import type { ConversionTable, Transform } from "@/types.ts";
+import type { ConversionTable, Transform, TransformProps } from "@/types.ts";
 
 import init, { transform as lightningcssTransform } from "lightningcss-wasm";
 import {
@@ -311,10 +311,7 @@ const INTERNAL_buildVisitor = (
   convertFunc: ReturnType<typeof createConversionFunction>,
   selectorConversionTable: ConversionTable,
   identConversionTable: ConversionTable,
-  ignorePatterns?: {
-    selector?: (string | RegExp)[];
-    ident?: (string | RegExp)[];
-  },
+  ignorePatterns?: TransformProps["ignorePatterns"],
 ) => ({
   Selector(selector: Selector): Selector | Selector[] {
     return INTERNAL_handleSelector(
@@ -329,7 +326,7 @@ const INTERNAL_buildVisitor = (
         }
         return convertFunc(value, conversionTable, ...props);
       },
-      ignorePatterns?.selector,
+      ignorePatterns?.selectors,
     );
   },
   DashedIdent(ident: string) {
@@ -337,7 +334,7 @@ const INTERNAL_buildVisitor = (
 
     // Check if this custom property should be ignored based on pattern
     if (
-      ignorePatterns?.ident && matchesAnyPattern(value, ignorePatterns.ident)
+      ignorePatterns?.idents && matchesAnyPattern(value, ignorePatterns.idents)
     ) {
       // Return the original value without transformation
       return ident;
