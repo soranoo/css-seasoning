@@ -316,7 +316,7 @@ const INTERNAL_buildVisitor = (
   // Normalize ignorePatterns to handle both array and object formats
   let selectorPatterns: (string | RegExp)[] | undefined;
   let identPatterns: (string | RegExp)[] | undefined;
-  
+
   if (Array.isArray(ignorePatterns)) {
     // If ignorePatterns is an array, use it for both selectors and identifiers
     selectorPatterns = ignorePatterns;
@@ -354,7 +354,7 @@ const INTERNAL_buildVisitor = (
       }
 
       return `--${convertFunc(value, identConversionTable)}`;
-    }
+    },
   } satisfies Visitor<CustomAtRules>;
 };
 
