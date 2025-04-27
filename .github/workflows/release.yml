@@ -35,12 +35,14 @@ jobs:
         run: deno run build:npm
 
       - name: Create Release
+        if: github.event_name == 'push'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: deno run semantic-release
 
       - name: Run Dry Release
+        if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: deno run semantic-release --dry-run
