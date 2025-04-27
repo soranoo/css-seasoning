@@ -75,6 +75,10 @@ export interface TransformProps {
   /**
    * Patterns to ignore when transforming CSS.
    * Any selector or custom property that matches one of the patterns will be left unchanged.
+   *
+   * Can be provided as either:
+   * - An array of patterns that apply to both selectors and identifiers
+   * - An object with separate patterns for selectors and identifiers
    */
   ignorePatterns?: {
     /**
@@ -90,7 +94,7 @@ export interface TransformProps {
      * Patterns should match the property name without the '--' prefix (e.g., "color" for "--color").
      */
     idents?: (string | RegExp)[];
-  };
+  } | (string | RegExp)[];
 
   /**
    * Options for the LightningCSS transformation.

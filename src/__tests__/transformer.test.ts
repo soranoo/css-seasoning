@@ -736,6 +736,40 @@ Deno.test("transform - ignores patterns with mixed string and RegExp", () => {
   );
 });
 
+Deno.test("transform - ignores patterns with array format (not object)", () => {
+  const input = `
+    :root { 
+      --main-color: purple;
+      --theme-color: orange;
+      --accent-color: green;
+    }
+    .button { color: var(--main-color); }
+    .btn-primary { color: var(--theme-color); }
+    .theme-button { background: var(--accent-color); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --a: purple;
+      --theme-color: orange;
+      --b: green;
+    }
+    .c { color: var(--a); }
+    .btn-primary { color: var(--theme-color); }
+    .theme-button { background: var(--b); }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    // Pass an array directly instead of an object with selectors/idents properties
+    ignorePatterns: ["^btn-", "^theme-"],
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
 /**
  * Removes all spaces from a string.
  *

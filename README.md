@@ -165,7 +165,9 @@ This ensures that the same mappings are used across multiple CSS files or builds
 
 #### Example: Ignoring Specific Patterns
 
-You can selectively ignore certain selectors or custom properties that you don't want to transform using regex patterns:
+You can selectively ignore certain selectors or custom properties that you don't want to transform using regex patterns. There are two ways to specify patterns:
+
+1. **Separately for selectors and identifiers (CLI):**
 
 ```bash
 # Ignore Bootstrap utility classes starting with 'btn-'
@@ -173,6 +175,18 @@ css-seasoning styles.css --ignore-selector "^btn-"
 
 # Ignore both bootstrap buttons and theme color custom properties
 css-seasoning styles.css --ignore-selector "^btn-" --ignore-ident "^theme-"
+```
+
+2. **Using the same patterns for both (programmatic API):**
+
+When using the API directly, you can also provide a single array of patterns that will apply to both selectors and identifiers:
+
+```js
+transform({
+  css: inputCss,
+  // These patterns will apply to both selectors and custom properties
+  ignorePatterns: ["^btn-", "^theme-", /bootstrap-/]
+});
 ```
 
 Input:
@@ -215,8 +229,8 @@ This allows you to keep certain naming conventions intact (like framework-specif
 | `prefix`               | `string`                             | `""`         | Prefix to add after debug symbol in debug mode                   |
 | `suffix`               | `string`                             | `""`         | Suffix to add at the end in debug mode                           |
 | `seed`                 | `number`                             | `undefined`  | Seed for hash generation in hash mode                            |
-| `ignorePatterns`       | `{selector?: (string \| RegExp)[], ident?: (string \| RegExp)[]}` | `undefined` | Patterns for selectors and custom properties to ignore during transformation |
-| `conversionTables`     | `{ selector?: {}, ident?: {} }`      | `undefined`  | Predefined conversion tables for selectors and identifiers       |
+| `ignorePatterns`       | `{selectors?: (string \| RegExp)[], idents?: (string \| RegExp)[]}` \| `(string \| RegExp)[]` | `undefined` | Patterns for selectors and custom properties to ignore during transformation. Can be an object with separate patterns for selectors and identifiers, or an array of patterns that apply to both. |
+| `conversionTables`     | `{ selectors?: {}, idents?: {} }`      | `undefined`  | Predefined conversion tables for selectors and identifiers       |
 | `lightningcssOptions`  | `object`                             | `{ minify: true }` | Options for the lightningcss transform                     |
 
 ### All options in one place 📦
@@ -233,13 +247,19 @@ const result = transform({
   prefix: "prefix-",     // Prefix in debug mode (after symbol)
   suffix: "-suffix",     // Suffix in debug mode
   seed: 123,             // Custom seed for hash generation
-  ignorePatterns: {      // Patterns to ignore during transformation
-    selector: ["^btn-", /header$/],
-    ident: ["^theme-"]
+  
+  // Object format for ignorePatterns (separate patterns for selectors and identifiers)
+  ignorePatterns: {      
+    selectors: ["^btn-", /header$/],
+    idents: ["^theme-"]
   },
+  
+  // Alternative: Array format (applies to both selectors and identifiers)
+  // ignorePatterns: ["^btn-", "^theme-", /header$/],
+  
   conversionTables: {    // Optional reusable mappings
-    selector: { "\\.button": "\\.preserved-class" },
-    ident: { "color": "preserved-var" }
+    selectors: { "\\.button": "\\.preserved-class" },
+    idents: { "color": "preserved-var" }
   },
   lightningcssOptions: { // Lightning CSS options
     minify: true,
