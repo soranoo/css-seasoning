@@ -357,8 +357,9 @@ css-seasoning [OPTIONS] <input-file>
 --source-map                 Generate source map
 --conversion-tables <file>   JSON file with existing conversion tables to preserve mappings
 --save-tables <file>         Save the conversion tables to a JSON file
---ignore-selector <pattern>  Regex pattern for selectors to ignore (can be used multiple times)
---ignore-ident <pattern>     Regex pattern for custom properties to ignore (can be used multiple times)
+--ignore <pattern>           Regex pattern for selectors and custom properties to ignore (can be used multiple times)
+--ignore-selector <pattern>  Regex pattern for selectors to ignore (can be used multiple times, overridden by --ignore)
+--ignore-ident <pattern>     Regex pattern for custom properties to ignore (can be used multiple times, overridden by --ignore)
 ```
 
 ### Examples

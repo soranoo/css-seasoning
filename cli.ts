@@ -31,13 +31,15 @@ OPTIONS:
   --source-map                 Generate source map
   --conversion-tables <file>   JSON file with existing conversion tables to preserve mappings
   --save-tables <file>         Save the conversion tables to a JSON file (prints to stderr if not specified)
-  --ignore-selector <pattern>  Regex pattern for selectors to ignore (can be used multiple times)
-  --ignore-ident <pattern>     Regex pattern for custom properties to ignore (can be used multiple times)
+  --ignore <pattern>           Regex pattern for selectors and custom properties to ignore (can be used multiple times)
+  --ignore-selector <pattern>  Regex pattern for selectors to ignore (can be used multiple times, overridden by --ignore)
+  --ignore-ident <pattern>     Regex pattern for custom properties to ignore (can be used multiple times, overridden by --ignore)
 
 EXAMPLES:
   css-seasoning styles.css
   css-seasoning -o output.css -m minimal styles.css
   css-seasoning --mode debug --debug-symbol "_d_" styles.css
+  css-seasoning --ignore "^btn-" --ignore "^theme-" styles.css
   css-seasoning --ignore-selector "^btn-" --ignore-ident "^theme-" styles.css
   css-seasoning --prefix "prefix-" --suffix-selector "-sel" --suffix-ident "-var" styles.css
   `);
@@ -61,6 +63,7 @@ const parseArgsa = () => {
       "seed", 
       "conversion-tables", 
       "save-tables", 
+      "ignore",
       "ignore-selector", 
       "ignore-ident"
     ],
@@ -82,7 +85,7 @@ const parseArgsa = () => {
       "debug-symbol": "_",
       minify: true,
     },
-    collect: ["ignore-selector", "ignore-ident"],
+    collect: ["ignore", "ignore-selector", "ignore-ident"],
   });
 
   if (args.help || args._.length === 0) {
@@ -112,6 +115,21 @@ const parseArgsa = () => {
     };
   }
 
+  // Handle ignore patterns
+  let ignorePatterns: TransformProps["ignorePatterns"] = undefined;
+  const ignore = args.ignore as string[] | undefined;
+  const ignoreSelector = args["ignore-selector"] as string[] | undefined;
+  const ignoreIdent = args["ignore-ident"] as string[] | undefined;
+
+  if (ignore && ignore.length > 0) {
+    ignorePatterns = ignore; // --ignore takes precedence and applies to both
+  } else if ((ignoreSelector && ignoreSelector.length > 0) || (ignoreIdent && ignoreIdent.length > 0)) {
+    ignorePatterns = {
+      selectors: ignoreSelector && ignoreSelector.length > 0 ? ignoreSelector : undefined,
+      idents: ignoreIdent && ignoreIdent.length > 0 ? ignoreIdent : undefined,
+    };
+  }
+
   return {
     inputFile,
     outputFile,
@@ -124,8 +142,7 @@ const parseArgsa = () => {
     sourceMap: args["source-map"],
     conversionTablesFile: args["conversion-tables"],
     saveTablesFile: args["save-tables"],
-    ignoreSelectorPatterns: args["ignore-selector"] as string[],
-    ignoreIdentPatterns: args["ignore-ident"] as string[],
+    ignorePatterns,
   };
 };
 
@@ -163,12 +180,7 @@ const main = async () => {
       suffix: options.suffix,
       seed: options.seed,
       conversionTables: existingConversionTables,
-      ignorePatterns: options.ignoreSelectorPatterns.length > 0 || options.ignoreIdentPatterns.length > 0
-        ? {
-            selectors: options.ignoreSelectorPatterns.length > 0 ? options.ignoreSelectorPatterns : undefined,
-            idents: options.ignoreIdentPatterns.length > 0 ? options.ignoreIdentPatterns : undefined,
-          }
-        : undefined,
+      ignorePatterns: options.ignorePatterns,
       lightningcssOptions: {
         minify: options.minify,
         sourceMap: options.sourceMap,
