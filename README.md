@@ -106,9 +106,11 @@ Prettied Output:
 ```css
 :root {
   --a:blue; --b:red;
-}.c {
+}
+.a {
   background-color:var(--a);
-}.c.d {
+}
+.b.c {
   background-color:var(--b);
 }
 ```
@@ -210,7 +212,7 @@ Output with ignore patterns:
 :root {
   --a:blue; --theme-primary:red;
 }
-.b {
+.a {
   color:var(--a);
 }
 .btn-primary {
@@ -220,14 +222,72 @@ Output with ignore patterns:
 
 This allows you to keep certain naming conventions intact (like framework-specific class names or theme variables) while still transforming the rest of your CSS.
 
+#### Example: Using Different Prefixes/Suffixes for Selectors and Identifiers
+
+```bash
+# Using CLI with different prefixes for selectors and identifiers
+css-seasoning styles.css -m debug --prefix-selector "sel-" --prefix-ident "var-"
+
+# Using CLI with different suffixes for selectors and identifiers
+css-seasoning styles.css -m debug --suffix-selector "-s" --suffix-ident "-v"
+
+# Using both different prefixes and suffixes
+css-seasoning styles.css -m debug --prefix-selector "sel-" --prefix-ident "var-" --suffix-selector "-s" --suffix-ident "-v"
+```
+
+When using the API directly, you can provide separate values as an object:
+
+```js
+transform({
+  css: inputCss,
+  mode: "debug",
+  // Different prefixes for selectors and identifiers
+  prefix: {
+    selectors: "sel-",
+    idents: "var-"
+  },
+  // Different suffixes for selectors and identifiers
+  suffix: {
+    selectors: "-s",
+    idents: "-v"
+  }
+});
+```
+
+Input:
+```css
+:root {
+  --main-color: blue;
+  --accent-color: red;
+}
+
+.button {
+  background-color: var(--main-color);
+}
+```
+
+Output with different prefixes and suffixes:
+```css
+:root {
+  --_var-main-color-v: blue;
+  --_var-accent-color-v: red;
+}
+
+._sel-\.button-s {
+  background-color: var(--_var-main-color-v);
+}
+```
+
+This allows for more flexibility when debugging by making it easier to visually distinguish between transformed selectors and custom properties.
+
 ## 📖 Config Options Reference
 
 | Option                 | Type                                 | Default      | Description                                                      |
 | ---------------------- | ------------------------------------ | ------------ | ---------------------------------------------------------------- |
 | `mode`                 | `"hash"` \| `"minimal"` \| `"debug"` | `"hash"`     | The transformation mode to use                                   |
 | `debugSymbol`          | `string`                             | `"_"`        | Symbol to use in debug mode                                      |
-| `prefix`               | `string`                             | `""`         | Prefix to add after debug symbol in debug mode                   |
-| `suffix`               | `string`                             | `""`         | Suffix to add at the end in debug mode                           |
+| `prefix`               | `string` \| `{selectors?: string, idents?: string}` | `""`         | Prefix to add after debug symbol in debug mode. Can be a string that applies to both selectors and identifiers, or an object with separate values for each.                   |
+| `suffix`               | `string` \| `{selectors?: string, idents?: string}` | `""`         | Suffix to add at the end in debug mode. Can be a string that applies to both selectors and identifiers, or an object with separate values for each.                           |
 | `seed`                 | `number`                             | `undefined`  | Seed for hash generation in hash mode                            |
 | `ignorePatterns`       | `{selectors?: (string \| RegExp)[], idents?: (string \| RegExp)[]}` \| `(string \| RegExp)[]` | `undefined` | Patterns for selectors and custom properties to ignore during transformation. Can be an object with separate patterns for selectors and identifiers, or an array of patterns that apply to both. |
 | `conversionTables`     | `{ selectors?: {}, idents?: {} }`      | `undefined`  | Predefined conversion tables for selectors and identifiers       |
@@ -287,12 +347,18 @@ css-seasoning [OPTIONS] <input-file>
 -m, --mode <mode>            Transformation mode: hash, minimal, or debug (default: hash)
 -d, --debug-symbol <symbol>  Symbol to use for debug mode (default: _)
 -p, --prefix <prefix>        Prefix to add after debug symbol in debug mode
+    --prefix-selector <prefix> Prefix to use for selectors (overrides --prefix)
+    --prefix-ident <prefix>  Prefix to use for identifiers (overrides --prefix)
 -s, --suffix <suffix>        Suffix to add at the end in debug mode
+    --suffix-selector <suffix> Suffix to use for selectors (overrides --suffix)
+    --suffix-ident <suffix>  Suffix to use for identifiers (overrides --suffix)
 --seed <number>              Seed for hash generation in hash mode
 --minify                     Minify the output CSS (default: true)
 --source-map                 Generate source map
 --conversion-tables <file>   JSON file with existing conversion tables to preserve mappings
 --save-tables <file>         Save the conversion tables to a JSON file
+--ignore-selector <pattern>  Regex pattern for selectors to ignore (can be used multiple times)
+--ignore-ident <pattern>     Regex pattern for custom properties to ignore (can be used multiple times)
 ```
 
 ### Examples

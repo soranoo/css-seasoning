@@ -30,6 +30,21 @@ export interface ConversionTables {
   idents: ConversionTable;
 }
 
+/**
+ * Represents separate prefix/suffix values for selectors and identifiers
+ */
+export interface PrefixSuffixOptions {
+  /**
+   * The value to be applied to selectors
+   */
+  selectors?: string;
+
+  /**
+   * The value to be applied to identifiers (custom properties)
+   */
+  idents?: string;
+}
+
 export interface TransformProps {
   /**
    * The CSS code to be transformed.
@@ -52,13 +67,21 @@ export interface TransformProps {
 
   /**
    * The prefix to be prepended to transformed selectors and identifiers.
+   *
+   * Can be provided as either:
+   * - A string that applies to both selectors and identifiers
+   * - An object with separate values for selectors and identifiers
    */
-  prefix?: string;
+  prefix?: string | PrefixSuffixOptions;
 
   /**
    * The suffix to be appended to transformed selectors and identifiers.
+   *
+   * Can be provided as either:
+   * - A string that applies to both selectors and identifiers
+   * - An object with separate values for selectors and identifiers
    */
-  suffix?: string;
+  suffix?: string | PrefixSuffixOptions;
 
   /**
    * The seed to be used for hash generation.

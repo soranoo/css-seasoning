@@ -1,4 +1,4 @@
-import type { TransformProps } from "@/types.ts";
+import type { PrefixSuffixOptions, TransformProps } from "@/types.ts";
 
 import { parseArgs as jsrParseArgs } from "jsr:@std/cli/parse-args";
 import { initTransform, transform } from "@/index.ts";
@@ -21,7 +21,11 @@ OPTIONS:
   -m, --mode <mode>            Transformation mode: hash, minimal, or debug (default: hash)
   -d, --debug-symbol <symbol>  Symbol to use for debug mode (default: _)
   -p, --prefix <prefix>        Prefix to add after debug symbol in debug mode
+      --prefix-selector <prefix> Prefix to use for selectors (overrides --prefix)
+      --prefix-ident <prefix>  Prefix to use for identifiers (overrides --prefix)
   -s, --suffix <suffix>        Suffix to add at the end in debug mode
+      --suffix-selector <suffix> Suffix to use for selectors (overrides --suffix)
+      --suffix-ident <suffix>  Suffix to use for identifiers (overrides --suffix)
   --seed <number>              Seed for hash generation in hash mode
   --minify                     Minify the output CSS (default: true)
   --source-map                 Generate source map
@@ -35,6 +39,7 @@ EXAMPLES:
   css-seasoning -o output.css -m minimal styles.css
   css-seasoning --mode debug --debug-symbol "_d_" styles.css
   css-seasoning --ignore-selector "^btn-" --ignore-ident "^theme-" styles.css
+  css-seasoning --prefix "prefix-" --suffix-selector "-sel" --suffix-ident "-var" styles.css
   `);
 };
 
@@ -43,7 +48,22 @@ EXAMPLES:
  */
 const parseArgsa = () => {
   const args = jsrParseArgs(Deno.args, {
-    string: ["output", "mode", "debug-symbol", "prefix", "suffix", "seed", "conversion-tables", "save-tables", "ignore-selector", "ignore-ident"],
+    string: [
+      "output", 
+      "mode", 
+      "debug-symbol", 
+      "prefix", 
+      "prefix-selector", 
+      "prefix-ident", 
+      "suffix", 
+      "suffix-selector", 
+      "suffix-ident", 
+      "seed", 
+      "conversion-tables", 
+      "save-tables", 
+      "ignore-selector", 
+      "ignore-ident"
+    ],
     boolean: [
       "help", 
       "minify", 
@@ -60,8 +80,6 @@ const parseArgsa = () => {
     default: {
       mode: "hash",
       "debug-symbol": "_",
-      prefix: "",
-      suffix: "",
       minify: true,
     },
     collect: ["ignore-selector", "ignore-ident"],
@@ -77,13 +95,30 @@ const parseArgsa = () => {
   // Output file is optional now - if not provided, output will go to stdout
   const outputFile = args.output || null;
 
+  // Handle prefix/suffix options with separate selector/ident values
+  let prefix: string | PrefixSuffixOptions = args.prefix || "";
+  if (args["prefix-selector"] || args["prefix-ident"]) {
+    prefix = {
+      selectors: args["prefix-selector"] || args.prefix || "",
+      idents: args["prefix-ident"] || args.prefix || "",
+    };
+  }
+
+  let suffix: string | PrefixSuffixOptions = args.suffix || "";
+  if (args["suffix-selector"] || args["suffix-ident"]) {
+    suffix = {
+      selectors: args["suffix-selector"] || args.suffix || "",
+      idents: args["suffix-ident"] || args.suffix || "",
+    };
+  }
+
   return {
     inputFile,
     outputFile,
     mode: args.mode as "hash" | "minimal" | "debug",
     debugSymbol: args["debug-symbol"],
-    prefix: args.prefix,
-    suffix: args.suffix,
+    prefix,
+    suffix,
     seed: args.seed ? Number.parseInt(args.seed) : undefined,
     minify: args.minify,
     sourceMap: args["source-map"],

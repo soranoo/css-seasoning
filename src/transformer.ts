@@ -1,5 +1,10 @@
 import type { CustomAtRules, Selector, Visitor } from "lightningcss-wasm";
-import type { ConversionTable, Transform, TransformProps } from "@/types.ts";
+import type {
+  ConversionTable,
+  PrefixSuffixOptions,
+  Transform,
+  TransformProps,
+} from "@/types.ts";
 
 import init, { transform as lightningcssTransform } from "lightningcss-wasm";
 import {
@@ -301,14 +306,16 @@ const createConversionFunction = (
 /**
  * Builds a visitor object for processing selectors and dashed identifiers using lightningcss.
  *
- * @param convertFunc - The conversion function to apply to selector or identifier names.
+ * @param selectorConvertFunc - The conversion function to apply to selector names.
+ * @param identConvertFunc - The conversion function to apply to identifier names.
  * @param selectorConversionTable - A table mapping original selectors to converted selectors.
  * @param identConversionTable - A table mapping original identifiers to converted identifiers.
  * @param ignorePatterns - Patterns for selectors and custom properties to ignore during transformation.
  * @returns A visitor object compatible with lightningcss.
  */
 const INTERNAL_buildVisitor = (
-  convertFunc: ReturnType<typeof createConversionFunction>,
+  selectorConvertFunc: ReturnType<typeof createConversionFunction>,
+  identConvertFunc: ReturnType<typeof createConversionFunction>,
   selectorConversionTable: ConversionTable,
   identConversionTable: ConversionTable,
   ignorePatterns?: TransformProps["ignorePatterns"],
@@ -339,7 +346,7 @@ const INTERNAL_buildVisitor = (
               cssUnescape(selectorConversionTable[escapedValue]),
             );
           }
-          return convertFunc(value, conversionTable, ...props);
+          return selectorConvertFunc(value, conversionTable, ...props);
         },
         selectorPatterns,
       );
@@ -353,9 +360,34 @@ const INTERNAL_buildVisitor = (
         return ident;
       }
 
-      return `--${convertFunc(value, identConversionTable)}`;
+      return `--${identConvertFunc(value, identConversionTable)}`;
     },
   } satisfies Visitor<CustomAtRules>;
+};
+
+/**
+ * Normalize prefix/suffix options to get separate values for selectors and identifiers
+ *
+ * @param value - A string or object with selectors/idents properties
+ * @param defaultValue - Default value to use if not specified
+ * @returns An object with normalized selectors and idents values
+ */
+const normalizeAffixOptions = (
+  value: string | PrefixSuffixOptions | undefined,
+  defaultValue = "",
+): { selectors: string; idents: string } => {
+  if (typeof value === "string" || value === undefined) {
+    const stringValue = value || defaultValue;
+    return {
+      selectors: stringValue,
+      idents: stringValue,
+    };
+  }
+
+  return {
+    selectors: value.selectors ?? defaultValue,
+    idents: value.idents ?? defaultValue,
+  };
 };
 
 /**
@@ -377,8 +409,8 @@ export const transform: Transform = ({
   css,
   mode = "hash",
   debugSymbol = "_",
-  prefix = "",
-  suffix = "",
+  prefix,
+  suffix,
   seed,
   conversionTables,
   ignorePatterns,
@@ -392,18 +424,31 @@ export const transform: Transform = ({
       {};
   const identConversionTable: ConversionTable = conversionTables?.idents ?? {};
 
-  // Create conversion function based on the selected mode and custom seed
-  const convertFunc = createConversionFunction(
+  // Normalize prefix and suffix to get separate values for selectors and identifiers
+  const normalizedPrefix = normalizeAffixOptions(prefix);
+  const normalizedSuffix = normalizeAffixOptions(suffix);
+
+  // Create conversion functions based on the selected mode and custom seed
+  const selectorConvertFunc = createConversionFunction(
     mode,
     debugSymbol,
-    prefix,
-    suffix,
+    normalizedPrefix.selectors,
+    normalizedSuffix.selectors,
+    seed,
+  );
+
+  const identConvertFunc = createConversionFunction(
+    mode,
+    debugSymbol,
+    normalizedPrefix.idents,
+    normalizedSuffix.idents,
     seed,
   );
 
   // Build visitor for lightningcss.Transform using provided conversion tables
   const visitor = INTERNAL_buildVisitor(
-    convertFunc,
+    selectorConvertFunc,
+    identConvertFunc,
     selectorConversionTable,
     identConversionTable,
     ignorePatterns,
