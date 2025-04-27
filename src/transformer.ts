@@ -312,37 +312,51 @@ const INTERNAL_buildVisitor = (
   selectorConversionTable: ConversionTable,
   identConversionTable: ConversionTable,
   ignorePatterns?: TransformProps["ignorePatterns"],
-) => ({
-  Selector(selector: Selector): Selector | Selector[] {
-    return INTERNAL_handleSelector(
-      selector,
-      selectorConversionTable,
-      (value: string, conversionTable: Record<string, string>, ...props) => {
-        const escapedValue = cssEscape(value);
-        if (selectorConversionTable[escapedValue]) {
-          return parseSelectorComponent( // <- Allow to convert to complex selector
-            cssUnescape(selectorConversionTable[escapedValue]),
-          );
-        }
-        return convertFunc(value, conversionTable, ...props);
-      },
-      ignorePatterns?.selectors,
-    );
-  },
-  DashedIdent(ident: string) {
-    const value = ident.slice(2); // remove the '--' prefix
+) => {
+  // Normalize ignorePatterns to handle both array and object formats
+  let selectorPatterns: (string | RegExp)[] | undefined;
+  let identPatterns: (string | RegExp)[] | undefined;
+  
+  if (Array.isArray(ignorePatterns)) {
+    // If ignorePatterns is an array, use it for both selectors and identifiers
+    selectorPatterns = ignorePatterns;
+    identPatterns = ignorePatterns;
+  } else if (ignorePatterns) {
+    // If ignorePatterns is an object, extract the separate patterns
+    selectorPatterns = ignorePatterns.selectors;
+    identPatterns = ignorePatterns.idents;
+  }
 
-    // Check if this custom property should be ignored based on pattern
-    if (
-      ignorePatterns?.idents && matchesAnyPattern(value, ignorePatterns.idents)
-    ) {
-      // Return the original value without transformation
-      return ident;
+  return {
+    Selector(selector: Selector): Selector | Selector[] {
+      return INTERNAL_handleSelector(
+        selector,
+        selectorConversionTable,
+        (value: string, conversionTable: Record<string, string>, ...props) => {
+          const escapedValue = cssEscape(value);
+          if (selectorConversionTable[escapedValue]) {
+            return parseSelectorComponent( // <- Allow to convert to complex selector
+              cssUnescape(selectorConversionTable[escapedValue]),
+            );
+          }
+          return convertFunc(value, conversionTable, ...props);
+        },
+        selectorPatterns,
+      );
+    },
+    DashedIdent(ident: string) {
+      const value = ident.slice(2); // remove the '--' prefix
+
+      // Check if this custom property should be ignored based on pattern
+      if (identPatterns && matchesAnyPattern(value, identPatterns)) {
+        // Return the original value without transformation
+        return ident;
+      }
+
+      return `--${convertFunc(value, identConversionTable)}`;
     }
-
-    return `--${convertFunc(value, identConversionTable)}`;
-  },
-} satisfies Visitor<CustomAtRules>);
+  } satisfies Visitor<CustomAtRules>;
+};
 
 /**
  * Transforms CSS by processing selectors and dashed identifiers using a conversion mode.

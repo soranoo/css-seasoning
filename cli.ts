@@ -128,10 +128,12 @@ const main = async () => {
       suffix: options.suffix,
       seed: options.seed,
       conversionTables: existingConversionTables,
-      ignorePatterns: {
-        selectors: options.ignoreSelectorPatterns,
-        idents: options.ignoreIdentPatterns,
-      },
+      ignorePatterns: options.ignoreSelectorPatterns.length > 0 || options.ignoreIdentPatterns.length > 0
+        ? {
+            selectors: options.ignoreSelectorPatterns.length > 0 ? options.ignoreSelectorPatterns : undefined,
+            idents: options.ignoreIdentPatterns.length > 0 ? options.ignoreIdentPatterns : undefined,
+          }
+        : undefined,
       lightningcssOptions: {
         minify: options.minify,
         sourceMap: options.sourceMap,
