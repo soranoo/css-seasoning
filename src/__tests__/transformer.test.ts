@@ -52,8 +52,8 @@ Deno.test("transform - minimal mode", () => {
   `;
   const expectedOutput = `
     :root { --a: value; --b: value; }
-    .c { color: var(--a); } 
-    .d { background: var(--b); }
+    .a { color: var(--a); } 
+    .b { background: var(--b); }
   `;
   const result = transform({
     css: input,
@@ -146,7 +146,7 @@ Deno.test("transform - preserves conversion tables", () => {
   `;
   const expectedOutput = `
     :root { --preserved-var: value; --a: value; }
-    .b { color: var(--a); } 
+    .a { color: var(--a); } 
     .preserved-class { color: var(--preserved-var); }
     .preserved-class-2 #preserved-id { color: red; }
   `;
@@ -503,9 +503,9 @@ Deno.test("transform - ignores selector patterns", () => {
       --b: orange;
       --c: green;
     }
-    .d { color: var(--a); }
+    .a { color: var(--a); }
     .btn-primary { color: var(--b); }
-    #e { background: var(--c); }
+    #b { background: var(--c); }
   `;
 
   // Test ignoring selector patterns
@@ -547,9 +547,9 @@ Deno.test("transform - ignores ident patterns", () => {
       --theme-color: orange;
       --b: green;
     }
-    .c { color: var(--a); }
-    .d { color: var(--theme-color); }
-    #e { background: var(--b); }
+    .a { color: var(--a); }
+    .b { color: var(--theme-color); }
+    #c { background: var(--b); }
   `;
 
   const result = transform({
@@ -590,9 +590,9 @@ Deno.test("transform - ignores both selector and ident patterns", () => {
       --theme-color: orange;
       --b: green;
     }
-    .c { color: var(--a); }
+    .a { color: var(--a); }
     .btn-primary { color: var(--theme-color); }
-    #d { background: var(--b); }
+    #b { background: var(--b); }
   `;
 
   const result = transform({
@@ -640,7 +640,7 @@ Deno.test("transform - ignores patterns using RegExp objects", () => {
       --theme-color: orange;
       --accent-color: green;
     }
-    .b { color: var(--a); }
+    .a { color: var(--a); }
     .btn-primary { color: var(--theme-color); }
     #header { background: var(--accent-color); }
   `;
@@ -702,9 +702,9 @@ Deno.test("transform - ignores patterns with mixed string and RegExp", () => {
       --theme-color: orange;
       --brand-color: yellow;
     }
-    .b { color: var(--a); }
+    .a { color: var(--a); }
     .btn-primary { color: var(--theme-color); }
-    .c { background: var(--brand-color); }
+    .b { background: var(--brand-color); }
   `;
 
   const result = transform({
@@ -754,7 +754,7 @@ Deno.test("transform - ignores patterns with array format (not object)", () => {
       --theme-color: orange;
       --b: green;
     }
-    .c { color: var(--a); }
+    .a { color: var(--a); }
     .btn-primary { color: var(--theme-color); }
     .theme-button { background: var(--b); }
   `;
@@ -764,6 +764,109 @@ Deno.test("transform - ignores patterns with array format (not object)", () => {
     mode: "minimal",
     // Pass an array directly instead of an object with selectors/idents properties
     ignorePatterns: ["^btn-", "^theme-"],
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - prefix with different values for selectors and identifiers", () => {
+  const input = `
+    :root { 
+      --custom-prop: value; 
+      --another-prop: value;
+    }
+    .test { color: var(--custom-prop); } 
+    .another-test { background: var(--another-prop); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --var-a: value; 
+      --var-b: value;
+    }
+    .sel-a { color: var(--var-a); } 
+    .sel-b { background: var(--var-b); }
+  `;
+
+  // Different prefixes for selectors and identifiers
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    prefix: {
+      selectors: "sel-",
+      idents: "var-",
+    },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - suffix with different values for selectors and identifiers", () => {
+  const input = `
+    :root { 
+      --custom-prop: value; 
+      --another-prop: value;
+    }
+    .test { color: var(--custom-prop); } 
+    .another-test { background: var(--another-prop); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --a-v: value; 
+      --b-v: value;
+    }
+    .a-s { color: var(--a-v); } 
+    .b-s { background: var(--b-v); }
+  `;
+
+  // Different suffixes for selectors and identifiers
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    suffix: {
+      selectors: "-s",
+      idents: "-v",
+    },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - prefix and suffix with different values for selectors and identifiers", () => {
+  const input = `
+    :root { 
+      --custom-prop: value; 
+      --another-prop: value;
+    }
+    .test { color: var(--custom-prop); } 
+    .another-test { background: var(--another-prop); }
+  `;
+
+  const expectedOutput = `
+    :root { 
+      --var-a-v: value; 
+      --var-b-v: value;
+    }
+    .sel-a-s { color: var(--var-a-v); } 
+    .sel-b-s { background: var(--var-b-v); }
+  `;
+
+  // Both prefix and suffix with different values
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    prefix: {
+      selectors: "sel-",
+      idents: "var-",
+    },
+    suffix: {
+      selectors: "-s",
+      idents: "-v",
+    },
     lightningcssOptions: { minify: false },
   });
 
