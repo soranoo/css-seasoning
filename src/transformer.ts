@@ -17,6 +17,7 @@ import {
   numberToLetters,
   parseSelectorComponent,
   stringifySelectorComponent,
+  stringSeedToNumber,
 } from "@/utils.ts";
 
 export const initTransform = async () => {
@@ -160,7 +161,7 @@ const INTERNAL_handleSelector = (
  * @param debugSymbol - Symbol used for debugging (only applicable in 'debug' mode).
  * @param prefix - Prefix to display after the debug symbol in debug mode.
  * @param suffix - Suffix to append after the converted value in debug mode.
- * @param seed - Optional seed used for hashing in 'hash' mode.
+ * @param seed - Optional numeric seed used for hashing in 'hash' mode.
  * @returns A function that converts a string using the given mode.
  */
 const createConversionFunction = (
@@ -399,7 +400,7 @@ const normalizeAffixOptions = (
  * @param params.debugSymbol - The custom debug symbol to prefix in debug mode; defaults to '_' if not provided.
  * @param params.prefix - In debug mode, the prefix to display after the debug symbol; defaults to an empty string.
  * @param params.suffix - In debug mode, the suffix to append after the value; defaults to an empty string.
- * @param params.seed - The custom seed for hash mode; defaults to 125 if not provided.
+ * @param params.seed - The custom seed (string or number) for hash mode.
  * @param params.conversionTables - Predefined conversion tables for selectors and identifiers. Use if you want to preserve previous mappings.
  * @param params.ignorePatterns - Patterns for selectors and custom properties to ignore during transformation.
  * @param params.lightningcssOptions - Options for the lightningcss transform.
@@ -428,13 +429,16 @@ export const transform: Transform = ({
   const normalizedPrefix = normalizeAffixOptions(prefix);
   const normalizedSuffix = normalizeAffixOptions(suffix);
 
+  // Convert string seed to number if necessary
+  const numericSeed = typeof seed === "string" ? stringSeedToNumber(seed) : seed;
+
   // Create conversion functions based on the selected mode and custom seed
   const selectorConvertFunc = createConversionFunction(
     mode,
     debugSymbol,
     normalizedPrefix.selectors,
     normalizedSuffix.selectors,
-    seed,
+    numericSeed,
   );
 
   const identConvertFunc = createConversionFunction(
@@ -442,7 +446,7 @@ export const transform: Transform = ({
     debugSymbol,
     normalizedPrefix.idents,
     normalizedSuffix.idents,
-    seed,
+    numericSeed,
   );
 
   // Build visitor for lightningcss.Transform using provided conversion tables

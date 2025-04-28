@@ -122,12 +122,36 @@ Deno.test("transform - custom seed in hash mode", () => {
     seed: 2,
     lightningcssOptions: { minify: false },
   });
+  const stringSeedResult = transform({
+    css: input,
+    seed: "seed1", // Use a string seed
+    lightningcssOptions: { minify: false },
+  });
+  const stringSeedResult2 = transform({
+    css: input,
+    seed: "seed1", // Same string seed
+    lightningcssOptions: { minify: false },
+  });
+  const stringSeedResult3 = transform({
+    css: input,
+    seed: "seed2", // Different string seed
+    lightningcssOptions: { minify: false },
+  });
 
-  // Check if the same seed produces the same output
+  // Check if the same numeric seed produces the same output
   assertEquals(seed1Result.css, seed1Result2.css);
 
-  // Different seeds should produce different outputs
+  // Different numeric seeds should produce different outputs
   assertNotEquals(seed1Result.css, seed2Result.css);
+
+  // Check if the same string seed produces the same output
+  assertEquals(stringSeedResult.css, stringSeedResult2.css);
+
+  // Different string seeds should produce different outputs
+  assertNotEquals(stringSeedResult.css, stringSeedResult3.css);
+
+  // Numeric seed 1 and string seed "seed1" should produce different outputs
+  assertNotEquals(seed1Result.css, stringSeedResult.css);
 });
 
 Deno.test("transform - preserves conversion tables", () => {

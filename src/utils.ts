@@ -20,6 +20,20 @@ const LOWERCASE_A_CHARCODE = 97;
 const LOWERCASE_Z_CHARCODE = 122;
 
 /**
+ * Converts a string seed into a numeric seed by summing character codes.
+ *
+ * @param strSeed - The string seed to convert.
+ * @returns A numeric representation of the string seed.
+ */
+export const stringSeedToNumber = (strSeed: string): number => {
+  let numSeed = 0;
+  for (let i = 0; i < strSeed.length; i++) {
+    numSeed += strSeed.charCodeAt(i);
+  }
+  return numSeed;
+};
+
+/**
  * Generates a hash value from a string.
  *
  * @param value - The string to hash.
