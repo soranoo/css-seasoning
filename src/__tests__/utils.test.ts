@@ -194,5 +194,9 @@ Deno.test("stringSeedToNumber converts string seeds correctly", () => {
   assertEquals(stringSeedToNumber("a"), 97);
   assertEquals(stringSeedToNumber("abc"), 97 + 98 + 99); // 294
   assertEquals(stringSeedToNumber(""), 0);
-  assertEquals(stringSeedToNumber("seed1"), "s".charCodeAt(0) + "e".charCodeAt(0) + "e".charCodeAt(0) + "d".charCodeAt(0) + "1".charCodeAt(0));
+  assertEquals(
+    stringSeedToNumber("seed1"),
+    "s".charCodeAt(0) + "e".charCodeAt(0) + "e".charCodeAt(0) +
+      "d".charCodeAt(0) + "1".charCodeAt(0),
+  );
 });

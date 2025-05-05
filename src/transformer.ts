@@ -430,7 +430,9 @@ export const transform: Transform = ({
   const normalizedSuffix = normalizeAffixOptions(suffix);
 
   // Convert string seed to number if necessary
-  const numericSeed = typeof seed === "string" ? stringSeedToNumber(seed) : seed;
+  const numericSeed = typeof seed === "string"
+    ? stringSeedToNumber(seed)
+    : seed;
 
   // Create conversion functions based on the selected mode and custom seed
   const selectorConvertFunc = createConversionFunction(
