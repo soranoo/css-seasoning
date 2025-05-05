@@ -86,8 +86,9 @@ export interface TransformProps {
   /**
    * The seed to be used for hash generation.
    * This is useful for generating consistent hashes across different runs.
+   * Can be a string or a number.
    */
-  seed?: number;
+  seed?: string | number;
 
   /**
    * Predefined conversion tables for selectors and identifiers.
