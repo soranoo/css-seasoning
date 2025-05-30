@@ -96,7 +96,8 @@ const INTERNAL_handleSelector = (
             }
           } else {
             throw new Error(
-              `Unhandled component stringify: ${JSON.stringify(component)
+              `Unhandled component stringify: ${
+                JSON.stringify(component)
               }, the "${component.type}" type should be handled.`,
             );
           }
@@ -441,7 +442,7 @@ export const transform: Transform = ({
   // Use user provided conversion tables if available, otherwise create new ones
   const selectorConversionTable: ConversionTable =
     conversionTables?.selectors ??
-    {};
+      {};
   const identConversionTable: ConversionTable = conversionTables?.idents ?? {};
 
   // Normalize prefix and suffix to get separate values for selectors and identifiers

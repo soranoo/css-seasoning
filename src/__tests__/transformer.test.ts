@@ -185,13 +185,13 @@ Deno.test("transform - preserves conversion tables", () => {
   // Check if existing mappings are preserved
   assertEquals(
     result.conversionTables.selectors[
-    Object.keys(existingTables.selectors)[0]
+      Object.keys(existingTables.selectors)[0]
     ],
     Object.values(existingTables.selectors)[0],
   );
   assertEquals(
     result.conversionTables.idents[
-    Object.keys(existingTables.idents)[0]
+      Object.keys(existingTables.idents)[0]
     ],
     Object.values(existingTables.idents)[0],
   );
