@@ -185,13 +185,13 @@ Deno.test("transform - preserves conversion tables", () => {
   // Check if existing mappings are preserved
   assertEquals(
     result.conversionTables.selectors[
-      Object.keys(existingTables.selectors)[0]
+    Object.keys(existingTables.selectors)[0]
     ],
     Object.values(existingTables.selectors)[0],
   );
   assertEquals(
     result.conversionTables.idents[
-      Object.keys(existingTables.idents)[0]
+    Object.keys(existingTables.idents)[0]
     ],
     Object.values(existingTables.idents)[0],
   );
@@ -205,6 +205,45 @@ Deno.test("transform - preserves conversion tables", () => {
   INTERNAL_assertConversionTable(
     result.conversionTables.idents,
     2,
+  );
+});
+
+Deno.test("transform - handles disabled pseudo-class", () => {
+  const input = `
+    .button:disabled { opacity: 0.5; }
+    input:disabled { background: #eee; }
+    .form-control:disabled + .helper { display: none; }
+    button:disabled:hover { cursor: not-allowed; }
+  `;
+  const expectedOutput = `
+    .a:disabled { opacity: .5; }
+    input:disabled { background: #eee; }
+    .b:disabled + .c { display: none; }
+    button:disabled:hover { cursor: not-allowed; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.button": "\\.a",
+      "\\.form-control": "\\.b",
+      "\\.helper": "\\.c",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
   );
 });
 
@@ -276,20 +315,193 @@ Deno.test("transform - handles basic selectors", () => {
   );
 });
 
-Deno.test("transform - handles pseudo-classes", () => {
+Deno.test("transform - handles first-child pseudo-class", () => {
+  const input = `
+    .list-item:first-child { margin-top: 0; }
+    .nested:first-child:hover { background: #eee; }
+  `;
+  const expectedOutput = `
+    .a:first-child { margin-top: 0; }
+    .b:first-child:hover { background: #eee; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.list-item": "\\.a",
+      "\\.nested": "\\.b",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
+
+Deno.test("transform - handles last-child pseudo-class", () => {
+  const input = `
+    .list-item:last-child { margin-bottom: 0; }
+    .nested:last-child:hover { background: #eee; }
+  `;
+  const expectedOutput = `
+    .a:last-child { margin-bottom: 0; }
+    .b:last-child:hover { background: #eee; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.list-item": "\\.a",
+      "\\.nested": "\\.b",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
+
+Deno.test("transform - handles nth-child pseudo-class", () => {
   const input = `
     :nth-child(2n) { background: #00f; }
-    :nth-last-child(odd) { margin-bottom: 10px; }
-    .item:not(.active) { opacity: 0.5; }
-    .menu:where(.dropdown, .popup) { position: relative; }
-    .section:is(.important, .highlight) { border: 1px solid red; }
+    .item:nth-child(3) { margin: 10px; }
   `;
   const expectedOutput = `
     :nth-child(2n) { background: #00f; }
+    .a:nth-child(3) { margin: 10px; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.item": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
+
+Deno.test("transform - handles focus-visible pseudo-class", () => {
+  const input = `
+    .button:focus-visible { outline: 2px solid blue; }
+    .link:focus-visible:not(.disabled) { text-decoration: underline; }
+    .input:focus-visible::placeholder { color: transparent; }
+    .card:hover:focus-visible { transform: scale(1.02); }
+  `;
+  const expectedOutput = `
+    .a:focus-visible { outline: 2px solid #00f; }
+    .b:focus-visible:not(.c) { text-decoration: underline; }
+    .d:focus-visible::placeholder { color: #0000; }
+    .e:hover:focus-visible { transform: scale(1.02); }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.button": "\\.a",
+      "\\.link": "\\.b",
+      "\\.disabled": "\\.c",
+      "\\.input": "\\.d",
+      "\\.card": "\\.e",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
+
+Deno.test("transform - handles nth-last-child pseudo-class", () => {
+  const input = `
     :nth-last-child(odd) { margin-bottom: 10px; }
+    .item:nth-last-child(2) { padding: 5px; }
+  `;
+  const expectedOutput = `
+    :nth-last-child(odd) { margin-bottom: 10px; }
+    .a:nth-last-child(2) { padding: 5px; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.item": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
+
+Deno.test("transform - handles not, where, is, and root pseudo-classes", () => {
+  const input = `
+    .item:not(.active) { opacity: 0.5; }
+    .menu:where(.dropdown, .popup) { position: relative; }
+    .section:is(.important, .highlight) { border: 1px solid red; }
+    :root { display: block; }
+  `;
+  const expectedOutput = `
     .a:not(.b) { opacity: .5; }
     .c:where(.d, .e) { position: relative; }
     .f:is(.g, .h) { border: 1px solid red; }
+    :root { display: block; }
   `;
   const expectedConversionTable: ConversionTables = {
     selectors: {
@@ -312,8 +524,92 @@ Deno.test("transform - handles pseudo-classes", () => {
   });
 
   INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
 
-  // Function-like pseudo-classes should not be converted, but class selectors should
+Deno.test("transform - handles custom pseudo-classes", () => {
+  const input = `
+    .button::custom-state { background: blue; }
+    .input::placeholder-shown { color: gray; }
+    .card::--custom { transform: scale(1.1); }
+    .element::--hover-focus:hover:focus { outline: 2px solid red; }
+  `;
+  const expectedOutput = `
+    .a::custom-state { background: #00f; }
+    .b::placeholder-shown { color: gray; }
+    .c::--custom { transform: scale(1.1); }
+    .d::--hover-focus:hover:focus { outline: 2px solid red; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.button": "\\.a",
+      "\\.input": "\\.b",
+      "\\.card": "\\.c",
+      "\\.element": "\\.d",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
+
+Deno.test("transform - handles focus-within pseudo-class", () => {
+  const input = `
+    .form:focus-within { border-color: blue; }
+    .nav-item:focus-within > .dropdown { display: block; }
+    .menu:hover:focus-within { background: #eee; }
+    .container:focus-within .item { color: blue; }
+    .nested:focus-within:not(.disabled) { outline: 2px solid red; }
+  `;
+  const expectedOutput = `
+    .a:focus-within { border-color: #00f; }
+    .b:focus-within > .c { display: block; }
+    .d:hover:focus-within { background: #eee; }
+    .e:focus-within .f { color: #00f; }
+    .g:focus-within:not(.h) { outline: 2px solid red; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.form": "\\.a",
+      "\\.nav-item": "\\.b",
+      "\\.dropdown": "\\.c",
+      "\\.menu": "\\.d",
+      "\\.container": "\\.e",
+      "\\.item": "\\.f",
+      "\\.nested": "\\.g",
+      "\\.disabled": "\\.h",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
   assertObjectMatch(
     result.conversionTables.selectors,
     expectedConversionTable.selectors,
@@ -891,6 +1187,134 @@ Deno.test("transform - prefix and suffix with different values for selectors and
       selectors: "-s",
       idents: "-v",
     },
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - handles universal selector", () => {
+  const input = `
+    * { box-sizing: border-box; }
+    .test * { margin: 0; }
+  `;
+  const expectedOutput = `
+    * { box-sizing: border-box; }
+    .a * { margin: 0; }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - handles pseudo-element selector", () => {
+  const input = `
+    .test::before { content: ""; }
+    .item:after { content: "→"; }
+  `;
+  const expectedOutput = `
+    .a:before { content: ""; }
+    .b:after { content: "→"; }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - handles attribute selector", () => {
+  const input = `
+    [disabled] { opacity: 0.5; }
+    [type="text"] { border: 1px solid gray; }
+    .test[hidden] { display: none; }
+  `;
+  const expectedOutput = `
+    [disabled] { opacity: .5; }
+    [type="text"] { border: 1px solid gray; }
+    .a[hidden] { display: none; }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - handles combinator selector", () => {
+  const input = `
+    .parent > .child { margin: 10px; }
+    .list + .list { margin-top: 1em; }
+    .sibling ~ .next { padding: 5px; }
+    .container .item { display: block; }
+  `;
+  const expectedOutput = `
+    .a > .b { margin: 10px; }
+    .c + .c { margin-top: 1em; }
+    .d ~ .e { padding: 5px; }
+    .f .g { display: block; }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - handles namespace selector", () => {
+  const input = `
+    |div { color: blue; }
+    svg|circle { fill: red; }
+    *|element { padding: 10px; }
+  `;
+  const expectedOutput = `
+    |div { color: #00f; }
+    svg|circle { fill: red; }
+    *|element { padding: 10px; }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - handles nesting selector", () => {
+  const input = `
+    .parent {
+      & > .child { color: red; }
+      &:hover { background: blue; }
+      &.modifier { font-weight: bold; }
+    }
+  `;
+  const expectedOutput = `
+    .a {
+      & > .b { color: red; }
+      &:hover { background: #00f; }
+      &.c { font-weight: bold; }
+    }
+  `;
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
     lightningcssOptions: { minify: false },
   });
 

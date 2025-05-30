@@ -45,7 +45,14 @@ const INTERNAL_handleSelector = (
   const newSelector = selector.map(
     (component): Selector | Selector[] | (Selector | Selector[])[] => {
       switch (component.type) {
+        case "universal": // eg. *
+        case "attribute": // eg. [type="text"], [disabled], etc.
+        case "combinator": // eg. >, +, ~, etc.
+        case "namespace": // eg. |, |namespace, etc.
+        case "nesting": // eg. &, &.class, etc.
+        case "pseudo-element": // eg. ::before, ::after, etc.
         case "type": { // eg. div, span, etc.
+          // No handling needed for these types
           return [component];
         }
         case "id":
@@ -89,8 +96,7 @@ const INTERNAL_handleSelector = (
             }
           } else {
             throw new Error(
-              `Unhandled component stringify: ${
-                JSON.stringify(component)
+              `Unhandled component stringify: ${JSON.stringify(component)
               }, the "${component.type}" type should be handled.`,
             );
           }
@@ -98,6 +104,18 @@ const INTERNAL_handleSelector = (
         }
         case "pseudo-class": // eg. :hover, :active, etc.
           switch (component.kind) {
+            case "disabled":
+            case "hover":
+            case "custom":
+            case "root":
+            case "focus":
+            case "focus-within":
+            case "focus-visible":
+            case "last-child":
+            case "first-child": {
+              // No further handling needed for these pseudo-classes
+              return [component];
+            }
             case "nth-child":
             case "nth-last-child":
               component?.of?.map((sel) => {
@@ -144,6 +162,7 @@ const INTERNAL_handleSelector = (
           }
           return [component];
         default:
+          // @ts-expect-error - Make sure get notified about unhandled types
           console.log(`[unhandled] type: ${component.type}`);
           return [component];
       }
@@ -422,7 +441,7 @@ export const transform: Transform = ({
   // Use user provided conversion tables if available, otherwise create new ones
   const selectorConversionTable: ConversionTable =
     conversionTables?.selectors ??
-      {};
+    {};
   const identConversionTable: ConversionTable = conversionTables?.idents ?? {};
 
   // Normalize prefix and suffix to get separate values for selectors and identifiers
