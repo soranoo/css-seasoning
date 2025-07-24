@@ -19,7 +19,7 @@ import {
   stringifySelectorComponent,
   stringSeedToNumber,
 } from "@/utils.ts";
-import {assertNever} from "assert-never";
+import { assertNever } from "assert-never";
 
 export const initTransform = async () => {
   await init();
