@@ -19,6 +19,7 @@ import {
   stringifySelectorComponent,
   stringSeedToNumber,
 } from "@/utils.ts";
+import {assertNever} from "assert-never";
 
 export const initTransform = async () => {
   await init();
@@ -163,9 +164,7 @@ const INTERNAL_handleSelector = (
           }
           return [component];
         default:
-          // @ts-expect-error - Make sure get notified about unhandled types
-          console.log(`[unhandled] type: ${component.type}`);
-          return [component];
+          return assertNever(component);
       }
     },
   );
