@@ -3,6 +3,25 @@ import pkg from "../deno.json" with { type: "json" }
 
 const BASE_PATH = "./dist/npm";
 
+/**
+ * Recursively copy all files and subfolders from src to dest.
+ * @param src - Source directory path
+ * @param dest - Destination directory path
+ */
+const copyDir = (src: string, dest: string) => {
+  Deno.mkdirSync(dest, { recursive: true });
+  for (const entry of Deno.readDirSync(src)) {
+  const srcPath = `${src}/${entry.name}`;
+  const destPath = `${dest}/${entry.name}`;
+  if (entry.isFile) {
+    Deno.copyFileSync(srcPath, destPath);
+  } else if (entry.isDirectory) {
+    copyDir(srcPath, destPath);
+  }
+  }
+};
+
+
 await emptyDir(`${BASE_PATH}`);
 
 await build({
@@ -39,5 +58,8 @@ await build({
     Deno.copyFileSync("LICENSE", `${BASE_PATH}/LICENSE`);
     Deno.copyFileSync("README.md", `${BASE_PATH}/README.md`);
     Deno.copyFileSync(".npmignore", `${BASE_PATH}/.npmignore`);
+
+    Deno.mkdirSync(`${BASE_PATH}/bin`, { recursive: true });
+    copyDir("./bin", `${BASE_PATH}/bin`);
   },
 });
