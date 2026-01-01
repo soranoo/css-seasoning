@@ -9,6 +9,7 @@
     "jsr:@std/assert@1.0.16": "1.0.16",
     "jsr:@std/bytes@0.223": "0.223.0",
     "jsr:@std/cli@*": "1.0.15",
+    "jsr:@std/cli@1.0.25": "1.0.25",
     "jsr:@std/fmt@0.223": "0.223.0",
     "jsr:@std/fmt@1": "1.0.6",
     "jsr:@std/fs@0.223": "0.223.0",
@@ -27,7 +28,8 @@
     "npm:@semantic-release/git@^10.0.1": "10.0.1_semantic-release@24.2.3__marked@12.0.2",
     "npm:@semantic-release/github@^11.0.1": "11.0.1_semantic-release@24.2.3__marked@12.0.2_@octokit+core@6.1.4",
     "npm:@semantic-release/npm@^12.0.1": "12.0.1_semantic-release@24.2.3__marked@12.0.2",
-    "npm:lightningcss-wasm@^1.29.1": "1.29.1",
+    "npm:assert-never@^1.4.0": "1.4.0",
+    "npm:lightningcss-wasm@^1.30.2": "1.30.2",
     "npm:semantic-release@^24.2.3": "24.2.3_marked@12.0.2",
     "npm:xxhash-wasm@^1.1.0": "1.1.0"
   },
@@ -72,6 +74,12 @@
     },
     "@std/cli@1.0.15": {
       "integrity": "e79ba3272ec710ca44d8342a7688e6288b0b88802703f3264184b52893d5e93f"
+    },
+    "@std/cli@1.0.25": {
+      "integrity": "1f85051b370c97a7a9dfc6ba626e7ed57a91bea8c081597276d1e78d929d8c91",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
     },
     "@std/fmt@0.223.0": {
       "integrity": "6deb37794127dfc7d7bded2586b9fc6f5d50e62a8134846608baf71ffc1a5208"
@@ -709,6 +717,9 @@
     },
     "array-ify@1.0.0": {
       "integrity": "sha512-c5AMf34bKdvPhQ7tBGhqkgKNUzMr4WUs+WDtC2ZUGOUncbxKMTvqxYctiseW3+L4bA8ec+GcZ6/A/FW4m8ukng=="
+    },
+    "assert-never@1.4.0": {
+      "integrity": "sha512-5oJg84os6NMQNl27T9LnZkvvqzvAnHu03ShCnoj6bsJwS7L8AO4lf+C/XjK/nvzEqQB744moC6V128RucQd1jA=="
     },
     "balanced-match@1.0.2": {
       "integrity": "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="
@@ -1608,11 +1619,8 @@
         "semver"
       ]
     },
-    "lightningcss-wasm@1.29.1": {
-      "integrity": "sha512-yrcX5OfnB5NJY32h2kOCaUr/OUz/os51uy/dTqSi+Z5lkUgnI9XIzlFDjbru/DaMkJ7v08QKN14Yr75SvDnqjA==",
-      "dependencies": [
-        "napi-wasm"
-      ]
+    "lightningcss-wasm@1.30.2": {
+      "integrity": "sha512-3QB24h07oFTwiXI/wItgEv5De1prsmrZFWluuTyLO7/CFk4kEC5zgG7V6qQNGLBB5+QhSnGMixUALWHXj+J3Ug=="
     },
     "lines-and-columns@1.2.4": {
       "integrity": "sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg=="
@@ -1807,9 +1815,6 @@
         "object-assign",
         "thenify-all"
       ]
-    },
-    "napi-wasm@1.1.3": {
-      "integrity": "sha512-h/4nMGsHjZDCYmQVNODIrYACVJ+I9KItbG+0si6W/jSjdA9JbWDoU4LLeMXVcEQGHjttI2tuXqDrbGF7qkUHHg=="
     },
     "negotiator@1.0.0": {
       "integrity": "sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg=="
@@ -2904,7 +2909,8 @@
       "npm:@semantic-release/git@^10.0.1",
       "npm:@semantic-release/github@^11.0.1",
       "npm:@semantic-release/npm@^12.0.1",
-      "npm:lightningcss-wasm@^1.29.1",
+      "npm:assert-never@^1.4.0",
+      "npm:lightningcss-wasm@^1.30.2",
       "npm:semantic-release@^24.2.3",
       "npm:xxhash-wasm@^1.1.0"
     ]

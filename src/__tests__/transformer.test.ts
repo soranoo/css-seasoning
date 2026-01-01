@@ -1,10 +1,6 @@
 import type { ConversionTables } from "@/types.ts";
 
-import {
-  assertEquals,
-  assertNotEquals,
-  assertObjectMatch,
-} from "@std/assert";
+import { assertEquals, assertNotEquals, assertObjectMatch } from "@std/assert";
 import { initTransform, transform } from "@/transformer.ts";
 
 await initTransform();

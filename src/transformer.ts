@@ -5,7 +5,7 @@ import type {
   Transform,
   TransformProps,
 } from "@/types.ts";
-
+import { assertNever } from "assert-never";
 import init, { transform as lightningcssTransform } from "lightningcss-wasm";
 import {
   cssEscape,
@@ -164,12 +164,19 @@ const INTERNAL_handleSelector = (
             default:
               console.log(`[unhandled] pseudo-class: ${component.kind}`);
               break;
+              // assertNever(
+              //   component.kind,
+              //   // @ts-expect-error - Make sure get notified about unhandled types
+              //   `Unhandled pseudo-class kind: ${component.kind}`,
+              // );
           }
           return [component];
         default:
-          // @ts-expect-error - Make sure get notified about unhandled types
-          console.log(`[unhandled] type: ${component.type}`);
-          return [component];
+          assertNever(
+            component,
+            // @ts-expect-error - Make sure get notified about unhandled types
+            `Unhandled selector component type: ${component.type}`,
+          );
       }
     },
   );
@@ -324,7 +331,7 @@ const createConversionFunction = (
       };
     }
     default:
-      throw new Error(`Unknown mode: ${mode}`);
+      assertNever(mode, `Unknown mode: ${mode}`);
   }
 };
 
