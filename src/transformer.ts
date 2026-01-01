@@ -105,6 +105,10 @@ const INTERNAL_handleSelector = (
         }
         case "pseudo-class": // eg. :hover, :active, etc.
           switch (component.kind) {
+            case "active":
+            case "empty":
+            case "scope":
+            case "lang":
             case "disabled":
             case "hover":
             case "custom":
