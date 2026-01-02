@@ -1,6 +1,7 @@
 import type { Selector, SelectorComponent } from "lightningcss-wasm";
 import { transform as lightningcssTransform } from "lightningcss-wasm";
 import xxhash from "xxhash-wasm";
+import { assertNever } from "assert-never";
 
 // Initialize xxhash
 let hashInstance: Awaited<ReturnType<typeof xxhash>> | null = null;
@@ -294,12 +295,12 @@ export const stringifySelectorComponent = (
       return selectorComponent.name;
     case "universal":
       return "*";
+    default:
+      assertNever(
+        selectorComponent,
+        `Unknown selector type: ${JSON.stringify(selectorComponent)}`,
+      );
   }
-
-  // Should never reach here
-  throw new Error(
-    `Unknown selector type: ${JSON.stringify(selectorComponent)}`,
-  );
 };
 
 /**

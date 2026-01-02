@@ -1,6 +1,6 @@
 import type { PrefixSuffixOptions, TransformProps } from "@/types.ts";
 
-import { parseArgs as jsrParseArgs } from "jsr:@std/cli/parse-args";
+import { parseArgs as jsrParseArgs } from "@std/cli/parse-args";
 import { initTransform, transform } from "@/index.ts";
 
 // TODO: add cli test

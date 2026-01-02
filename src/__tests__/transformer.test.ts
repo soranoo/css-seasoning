@@ -1,10 +1,6 @@
 import type { ConversionTables } from "@/types.ts";
 
-import {
-  assertEquals,
-  assertNotEquals,
-  assertObjectMatch,
-} from "jsr:@std/assert";
+import { assertEquals, assertNotEquals, assertObjectMatch } from "@std/assert";
 import { initTransform, transform } from "@/transformer.ts";
 
 await initTransform();
@@ -1319,6 +1315,465 @@ Deno.test("transform - handles nesting selector", () => {
   });
 
   INTERNAL_assertCss(result.css, expectedOutput);
+});
+
+Deno.test("transform - handles :lang() pseudo-class with single language", () => {
+  const input = `
+    :lang(en) { font-family: Arial; }
+    .button:lang(fr) { font-family: Georgia; }
+  `;
+  const expectedOutput = `
+    :lang(en) { font-family: Arial; }
+    .a:lang(fr) { font-family: Georgia; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.button": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+  assertObjectMatch(
+    result.conversionTables.idents,
+    expectedConversionTable.idents,
+  );
+});
+
+Deno.test("transform - handles :lang() pseudo-class with region code", () => {
+  const input = `
+    .text:lang(en-US) { text-align: left; }
+    .text:lang(en-GB) { text-align: right; }
+    p:lang(es-MX) { margin: 10px; }
+  `;
+  const expectedOutput = `
+    .a:lang(en-US) { text-align: left; }
+    .a:lang(en-GB) { text-align: right; }
+    p:lang(es-MX) { margin: 10px; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.text": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :lang() pseudo-class with multiple languages", () => {
+  const input = `
+    .content:lang(en, fr) { font-style: italic; }
+    span:lang(de, it, es) { text-decoration: underline; }
+  `;
+  const expectedOutput = `
+    .a:lang(en, fr) { font-style: italic; }
+    span:lang(de, it, es) { text-decoration: underline; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.content": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :lang() pseudo-class combined with other pseudo-classes", () => {
+  const input = `
+    .button:lang(en):hover { background: blue; }
+    .link:lang(fr):focus { outline: 2px solid red; }
+    .text:not(.excluded):lang(de) { color: black; }
+  `;
+  const expectedOutput = `
+    .a:lang(en):hover { background: #00f; }
+    .b:lang(fr):focus { outline: 2px solid red; }
+    .c:not(.d):lang(de) { color: #000; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.button": "\\.a",
+      "\\.link": "\\.b",
+      "\\.text": "\\.c",
+      "\\.excluded": "\\.d",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :active pseudo-class", () => {
+  const input = `
+    .button:active { background: darkblue; }
+    a:active { color: purple; }
+    input:active { border: 2px solid green; }
+  `;
+  const expectedOutput = `
+    .a:active { background: #00008b; }
+    a:active { color: purple; }
+    input:active { border: 2px solid green; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.button": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :active pseudo-class with complex selectors", () => {
+  const input = `
+    .btn:active:hover { opacity: 0.8; }
+    .menu-item:active:focus { box-shadow: inset 0 0 5px rgba(0,0,0,0.3); }
+    .widget:not(.disabled):active { transform: scale(0.95); }
+  `;
+  const expectedOutput = `
+    .a:active:hover { opacity: .8; }
+    .b:active:focus { box-shadow: inset 0 0 5px #0000004d; }
+    .c:not(.d):active { transform: scale(.95); }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.btn": "\\.a",
+      "\\.menu-item": "\\.b",
+      "\\.widget": "\\.c",
+      "\\.disabled": "\\.d",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :active pseudo-class with combinators", () => {
+  const input = `
+    .parent:active > .child { color: red; }
+    .item:active + .next-item { margin-top: 0; }
+    .container:active ~ .sibling { display: none; }
+  `;
+  const expectedOutput = `
+    .a:active > .b { color: red; }
+    .c:active + .d { margin-top: 0; }
+    .e:active ~ .f { display: none; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.parent": "\\.a",
+      "\\.child": "\\.b",
+      "\\.item": "\\.c",
+      "\\.next-item": "\\.d",
+      "\\.container": "\\.e",
+      "\\.sibling": "\\.f",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :empty pseudo-class", () => {
+  const input = `
+    div:empty { display: none; }
+    .container:empty { border: 1px dashed gray; }
+    p:empty { margin: 0; }
+  `;
+  const expectedOutput = `
+    div:empty { display: none; }
+    .a:empty { border: 1px dashed gray; }
+    p:empty { margin: 0; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.container": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :empty pseudo-class with complex selectors", () => {
+  const input = `
+    .item:empty:not(.preserve) { opacity: 0.5; }
+    .card:where(:empty) { padding: 0; }
+    .list-item:empty:hover { background: #f0f0f0; }
+  `;
+  const expectedOutput = `
+    .a:empty:not(.b) { opacity: .5; }
+    .c:where(:empty) { padding: 0; }
+    .d:empty:hover { background: #f0f0f0; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.item": "\\.a",
+      "\\.preserve": "\\.b",
+      "\\.card": "\\.c",
+      "\\.list-item": "\\.d",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :empty pseudo-class with combinators", () => {
+  const input = `
+    .empty-item:empty + .next { margin-top: 10px; }
+    .container .item:empty { color: gray; }
+    .wrapper:empty ~ .fallback { display: block; }
+  `;
+  const expectedOutput = `
+    .a:empty + .b { margin-top: 10px; }
+    .c .d:empty { color: gray; }
+    .e:empty ~ .f { display: block; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.empty-item": "\\.a",
+      "\\.next": "\\.b",
+      "\\.container": "\\.c",
+      "\\.item": "\\.d",
+      "\\.wrapper": "\\.e",
+      "\\.fallback": "\\.f",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :scope pseudo-class", () => {
+  const input = `
+    :scope { display: block; }
+    .widget:scope { padding: 10px; }
+  `;
+  const expectedOutput = `
+    :scope { display: block; }
+    .a:scope { padding: 10px; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.widget": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :scope pseudo-class with child combinator", () => {
+  const input = `
+    :scope > .direct-child { color: blue; }
+    .component:scope > .child { margin: 5px; }
+    :scope .descendant { font-weight: bold; }
+  `;
+  const expectedOutput = `
+    :scope > .a { color: #00f; }
+    .b:scope > .c { margin: 5px; }
+    :scope .d { font-weight: bold; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.direct-child": "\\.a",
+      "\\.component": "\\.b",
+      "\\.child": "\\.c",
+      "\\.descendant": "\\.d",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :scope pseudo-class with complex selectors", () => {
+  const input = `
+    :scope:not(.excluded) { opacity: 1; }
+    .panel:scope:where(.active) { background: white; }
+    :scope:focus-visible { outline: 2px solid gold; }
+  `;
+  const expectedOutput = `
+    :scope:not(.a) { opacity: 1; }
+    .b:scope:where(.c) { background: #fff; }
+    :scope:focus-visible { outline: 2px solid gold; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.excluded": "\\.a",
+      "\\.panel": "\\.b",
+      "\\.active": "\\.c",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :scope pseudo-class with sibling combinators", () => {
+  const input = `
+    :scope + .next-sibling { margin-top: 20px; }
+    .item:scope ~ .siblings { color: #666; }
+    :scope:empty + .fallback { display: block; }
+  `;
+  const expectedOutput = `
+    :scope + .a { margin-top: 20px; }
+    .b:scope ~ .c { color: #666; }
+    :scope:empty + .d { display: block; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.next-sibling": "\\.a",
+      "\\.item": "\\.b",
+      "\\.siblings": "\\.c",
+      "\\.fallback": "\\.d",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
 });
 
 /**
