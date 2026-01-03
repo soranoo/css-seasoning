@@ -1776,6 +1776,296 @@ Deno.test("transform - handles :scope pseudo-class with sibling combinators", ()
   );
 });
 
+Deno.test("transform - handles :not() with class selector", () => {
+  const input = `
+    .item:not(.active) { opacity: 0.5; }
+    .button:not(.primary, .archived, .deleted) { background: gray; }
+  `;
+  const expectedOutput = `
+    .a:not(.b) { opacity: .5; }
+    .c:not(.d, .e, .f) { background: gray; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.item": "\\.a",
+      "\\.active": "\\.b",
+      "\\.button": "\\.c",
+      "\\.primary": "\\.d",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :not() with ID selector", () => {
+  const input = `
+    div:not(#header) { padding: 10px; }
+    .section:not(#main) { border: 1px solid gray; }
+  `;
+  const expectedOutput = `
+    div:not(#a) { padding: 10px; }
+    .b:not(#c) { border: 1px solid gray; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\#header": "\\#a",
+      "\\.section": "\\.b",
+      "\\#main": "\\#c",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :not() with type selector", () => {
+  const input = `
+    .item:not(div) { color: red; }
+    span:not(em) { font-weight: bold; }
+    :not(script) { margin: 0; }
+  `;
+  const expectedOutput = `
+    .a:not(div) { color: red; }
+    span:not(em) { font-weight: bold; }
+    :not(script) { margin: 0; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.item": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :not() with attribute selector", () => {
+  const input = `
+    input:not([disabled]) { border: 1px solid blue; }
+    .field:not([required]) { background: white; }
+  `;
+  const expectedOutput = `
+    input:not([disabled]) { border: 1px solid #00f; }
+    .a:not([required]) { background: #fff; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.field": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :not() with pseudo-class selector", () => {
+  const input = `
+    a:not(:visited) { color: blue; }
+    button:not(:disabled) { cursor: pointer; }
+    .item:not(:hover) { opacity: 1; }
+    .item2:not(:is()) { opacity: 0; }
+  `;
+  const expectedOutput = `
+    a:not(:visited) { color: #00f; }
+    button:not(:disabled) { cursor: pointer; }
+    .a:not(:hover) { opacity: 1; }
+    .b:not(:is()) { opacity: 0; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.item": "\\.a",
+      "\\.item2": "\\.b",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :not() with universal selector", () => {
+  const input = `
+    .container:not(*) { display: none; }
+    div:not(*:hover) { color: black; }
+  `;
+  const expectedOutput = `
+    .a:not(*) { display: none; }
+    div:not(:hover) { color: #000; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.container": "\\.a",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :not() combined with other pseudo-classes", () => {
+  const input = `
+    .button:not(.disabled):hover { background: blue; }
+    .item:not(.active):focus-visible { outline: 2px solid gold; }
+    .link:not(.external):visited { color: purple; }
+  `;
+  const expectedOutput = `
+    .a:not(.b):hover { background: #00f; }
+    .c:not(.d):focus-visible { outline: 2px solid gold; }
+    .e:not(.f):visited { color: purple; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.button": "\\.a",
+      "\\.disabled": "\\.b",
+      "\\.item": "\\.c",
+      "\\.active": "\\.d",
+      "\\.link": "\\.e",
+      "\\.external": "\\.f",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles :not() with combinators inside", () => {
+  const input = `
+    .container:not(.item > .child) { margin: 10px; }
+    .element:not(.parent ~ .sibling) { padding: 5px; }
+  `;
+  const expectedOutput = `
+    .a:not(.b > .c) { margin: 10px; }
+    .d:not(.e ~ .f) { padding: 5px; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.container": "\\.a",
+      "\\.item": "\\.b",
+      "\\.child": "\\.c",
+      "\\.element": "\\.d",
+      "\\.parent": "\\.e",
+      "\\.sibling": "\\.f",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+Deno.test("transform - handles nested :not() pseudo-class", () => {
+  const input = `
+    .item:not(:not(.active)) { visibility: visible; }
+    .element:not(.excluded:not(.exception)) { opacity: 1; }
+  `;
+  const expectedOutput = `
+    .a:not(:not(.b)) { visibility: visible; }
+    .c:not(.d:not(.e)) { opacity: 1; }
+  `;
+  const expectedConversionTable: ConversionTables = {
+    selectors: {
+      "\\.item": "\\.a",
+      "\\.active": "\\.b",
+      "\\.element": "\\.c",
+      "\\.excluded": "\\.d",
+      "\\.exception": "\\.e",
+    },
+    idents: {},
+  };
+
+  const result = transform({
+    css: input,
+    mode: "minimal",
+    lightningcssOptions: { minify: false },
+  });
+
+  INTERNAL_assertCss(result.css, expectedOutput);
+  assertObjectMatch(
+    result.conversionTables.selectors,
+    expectedConversionTable.selectors,
+  );
+});
+
+
 /**
  * Removes all spaces from a string.
  *
