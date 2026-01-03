@@ -2065,7 +2065,6 @@ Deno.test("transform - handles nested :not() pseudo-class", () => {
   );
 });
 
-
 /**
  * Removes all spaces from a string.
  *
