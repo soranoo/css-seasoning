@@ -159,7 +159,7 @@ const INTERNAL_handleSelector = (
                 component.selectors = s as Selector[];
                 return [component];
               }
-              return s;
+              return [component];
             }
             default:
               console.log(`[unhandled] pseudo-class: ${component.kind}`);
